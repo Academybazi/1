@@ -480,7 +480,7 @@ function finish(){show("result");document.getElementById("bar").style.width="100
    let settled=false;
    const finish=(value)=>{if(settled)return;settled=true;clearTimeout(timer);window.removeEventListener('message',listener);resolve(value)};
    const listener=async(event)=>{
-    if(event.origin!==ACADEMY_ORIGIN||event.source!==window.opener)return;
+    if((event.origin!==ACADEMY_ORIGIN&&event.origin!=='null')||event.source!==window.opener)return;
     const msg=event.data;if(!msg||msg.type!=='SHAHRAK_HANDOFF_RESPONSE'||msg.nonce!==nonce)return;
     if(!msg.ok||!msg.payload||!msg.payload.session||!msg.payload.profile){setStatus(msg.error||'انتقال اطلاعات ورود از آکادمی ناموفق بود.',true);finish(false);return;}
     try{
@@ -497,7 +497,7 @@ function finish(){show("result");document.getElementById("bar").style.width="100
    };
    const timer=setTimeout(()=>{setStatus('پاسخ آکادمی دریافت نشد. از صفحهٔ آکادمی دوباره وارد شهرک بازی شوید.',true);finish(false)},15000);
    window.addEventListener('message',listener);
-   try{window.opener.postMessage({type:'SHAHRAK_HANDOFF_REQUEST',nonce},ACADEMY_ORIGIN)}catch(error){setStatus('ارتباط با آکادمی برقرار نشد.',true);finish(false)}
+   try{window.opener.postMessage({type:'SHAHRAK_HANDOFF_REQUEST',nonce},'*')}catch(error){setStatus('ارتباط با آکادمی برقرار نشد.',true);finish(false)}
   });
  }
  window.openAccess=async function(){
@@ -528,9 +528,10 @@ function finish(){show("result");document.getElementById("bar").style.width="100
  async function boot(){
   try{
    initClient();
-   const handed=await requestAcademyHandoff();
-   if(!handed)await resumeExistingSession();
-   if(!gameReady){setStatus('برای ورود به شهرک بازی، ابتدا از طریق آکادمی وارد شوید.');return;}
+   // انتقال نشست فقط پس از کلیک دانش‌آموز روی «ورود» انجام می‌شود؛
+   // تا درخواست اولیهٔ صفحه، مجوز یک‌بارمصرف آکادمی را مصرف نکند.
+   const resumed=await resumeExistingSession();
+   if(!resumed){setStatus('برای ورود به شهرک بازی، ابتدا از طریق آکادمی وارد شوید.');return;}
    await refreshAccess();
   }catch(error){setStatus('اتصال به سامانهٔ مجوز بازی برقرار نشد. ابتدا تنظیمات پایگاه داده را اجرا کنید.',true);console.error(error)}
  }
