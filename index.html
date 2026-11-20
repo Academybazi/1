@@ -106,6 +106,7 @@ header{color:#12345c}.brand{font-size:22px;text-shadow:0 2px #fff}
 </section>
 <section id="modes" class="hidden">
  <div class="stars">⭐ 🏅 ⭐ 🏅 ⭐</div>
+ <div id="shahrakAccessStatus" class="instruction" role="status" aria-live="polite">برای دریافت مجوز بازی، از طریق آکادمی وارد شوید.</div>
  <div class="gameCards">
   <button class="gameCard" onclick="startMode('escape')"><span class="emoji">🚪🔐</span><b>اتاق فرار علمی</b><small>قفل‌ها را با حل معما باز کن!</small></button>
   <button class="gameCard" onclick="startMode('lab')"><span class="emoji">🧪🔬</span><b>آزمایشگاه دانشمند</b><small>ابزار درست را انتخاب و آزمایش کن.</small></button>
@@ -400,4 +401,141 @@ function advance(){if(round<rounds.length-1){round++;loadRound()}else finish()}
 function finish(){show("result");document.getElementById("bar").style.width="100%";document.getElementById("finalScore").textContent=fa(score)+" امتیاز";document.getElementById("medal").textContent=score>=90?"🏆":score>=60?"🥇":"🌱";document.getElementById("resultText").textContent=score>=90?"درخشان بود! معماها را مثل یک دانشمند واقعی حل کردی.":score>=60?"آفرین! مهارت حل معمای علمی‌ات خوب است؛ با تمرین بهتر هم می‌شوی.":"تلاش خوبی بود. دوباره بازی کن و راه‌حل‌ها را کشف کن."}
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style id="shahrak-access-style-v1">
+#shahrakAccessStatus{margin:12px 0 16px;text-align:center;font-weight:800}
+.gameCard.locked{position:relative;filter:saturate(.42);opacity:.9}
+.gameCard.locked:before{content:"🔒";position:absolute;z-index:3;left:12px;top:10px;background:#102a56eF;color:#fff;border:1px solid #ffffff88;border-radius:30px;padding:7px 10px;font-size:18px;box-shadow:0 3px 9px #0003}
+.gameCard:not(.locked){outline:3px solid #ffe06a;outline-offset:2px}
+.gameCard:focus-visible{outline:4px solid #102a56;outline-offset:3px}
+</style>
+<script id="shahrak-access-logic-v1">
+(function(){
+ 'use strict';
+ const SUPABASE_URL='https://vsoovwohqwhhwtwkyrpy.supabase.co';
+ const SUPABASE_ANON_KEY='sb_publishable_--MkDj-tlGDyrRGzpGcgRg_XxjLhWB-';
+ const ACADEMY_ORIGIN='https://academybazi.github.io';
+ const GAME_IDS=['escape','lab','detective','puzzle','maze','eco','memory','build','food','race','snake','mix'];
+ let gameDb=null,gameReady=false,gameProfile=null,accessStatus=null,refreshing=null;
+ const statusEl=()=>document.getElementById('shahrakAccessStatus');
+ function setStatus(message,isError=false){const el=statusEl();if(el){el.textContent=message;el.style.background=isError?'#fff0ef':'#edf3ff';el.style.color=isError?'#963535':'#29456f';}}
+ function faNum(n){return new Intl.NumberFormat('fa-IR').format(Number(n)||0)}
+ function initClient(){
+  if(gameDb)return gameDb;
+  if(!window.supabase)throw new Error('کتابخانهٔ اتصال به پایگاه داده بارگذاری نشد.');
+  gameDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  return gameDb;
+ }
+ async function readStatus(){
+  const client=initClient();
+  const {data,error}=await client.rpc('shahrak_get_daily_game_status');
+  if(error)throw error;
+  if(!data||data.ok===false)throw new Error(data&&data.error||'اطلاعات حساب دانش‌آموز دریافت نشد.');
+  accessStatus=data;return data;
+ }
+ function drawLocks(){
+  const cards=[...document.querySelectorAll('#modes .gameCard')];
+  if(!cards.length)return;
+  const isAllowed=!!(accessStatus&&(accessStatus.is_explorer||accessStatus.is_admin));
+  const chosen=accessStatus&&accessStatus.played_game_id?String(accessStatus.played_game_id):'';
+  cards.forEach(card=>{
+   const match=(card.getAttribute('onclick')||'').match(/startMode\('([^']+)'\)/);
+   const id=match?match[1]:'';
+   const unlocked=isAllowed&&(!chosen||chosen===id);
+   card.classList.toggle('locked',!unlocked);
+   card.setAttribute('aria-disabled',unlocked?'false':'true');
+   card.dataset.gameId=id;
+  });
+  if(!isAllowed){
+   setStatus('شما باید برای بازی به سطح کاوشگر برسید.');
+  }else if(accessStatus.is_admin){
+   setStatus('دسترسی مدیر فعال است؛ می‌توانید بازی‌ها را انتخاب کنید.');
+  }else if(!chosen){
+   setStatus('به سطح کاوشگر رسیده‌ای! امروز یک بازی دلخواه انتخاب کن؛ پس از انتخاب، بقیهٔ بازی‌ها تا فردا قفل می‌شوند.');
+  }else{
+   setStatus('بازی امروز شما انتخاب شده است؛ فقط همین بازی تا پایان امروز باز است. فردا می‌توانید بازی دیگری انتخاب کنید.');
+  }
+ }
+ async function refreshAccess(){
+  if(refreshing)return refreshing;
+  refreshing=(async()=>{const s=await readStatus();drawLocks();return s})();
+  try{return await refreshing}finally{refreshing=null}
+ }
+ async function resumeExistingSession(){
+  try{
+   const client=initClient();
+   const {data,error}=await client.auth.getSession();if(error)throw error;
+   if(!data||!data.session)return false;
+   const saved=sessionStorage.getItem('shahrak_student_profile_v1');
+   gameProfile=saved?JSON.parse(saved):null;
+   if(!gameProfile||!gameProfile.id)return false;
+   gameReady=true;await refreshAccess();return true;
+  }catch(error){console.warn('Shahrak session resume failed:',error);return false;}
+ }
+ async function requestAcademyHandoff(){
+  const params=new URLSearchParams(location.search),nonce=params.get('shahrak_handoff');
+  if(!nonce||!window.opener)return false;
+  return new Promise((resolve)=>{
+   let settled=false;
+   const finish=(value)=>{if(settled)return;settled=true;clearTimeout(timer);window.removeEventListener('message',listener);resolve(value)};
+   const listener=async(event)=>{
+    if(event.origin!==ACADEMY_ORIGIN||event.source!==window.opener)return;
+    const msg=event.data;if(!msg||msg.type!=='SHAHRAK_HANDOFF_RESPONSE'||msg.nonce!==nonce)return;
+    if(!msg.ok||!msg.payload||!msg.payload.session||!msg.payload.profile){setStatus(msg.error||'انتقال اطلاعات ورود از آکادمی ناموفق بود.',true);finish(false);return;}
+    try{
+     const client=initClient();
+     const {error}=await client.auth.setSession({access_token:msg.payload.session.access_token,refresh_token:msg.payload.session.refresh_token});
+     if(error)throw error;
+     gameProfile=msg.payload.profile;
+     sessionStorage.setItem('shahrak_student_profile_v1',JSON.stringify(gameProfile));
+     gameReady=true;
+     history.replaceState({},document.title,location.pathname);
+     await refreshAccess();
+     finish(true);
+    }catch(error){setStatus('ورود به شهرک بازی ناموفق بود: '+(error.message||'خطای نامشخص'),true);finish(false);}
+   };
+   const timer=setTimeout(()=>{setStatus('پاسخ آکادمی دریافت نشد. از صفحهٔ آکادمی دوباره وارد شهرک بازی شوید.',true);finish(false)},15000);
+   window.addEventListener('message',listener);
+   try{window.opener.postMessage({type:'SHAHRAK_HANDOFF_REQUEST',nonce},ACADEMY_ORIGIN)}catch(error){setStatus('ارتباط با آکادمی برقرار نشد.',true);finish(false)}
+  });
+ }
+ window.openAccess=async function(){
+  if(!gameReady){await requestAcademyHandoff();if(!gameReady)await resumeExistingSession();}
+  if(!gameReady){setStatus('برای ورود به شهرک بازی، ابتدا از طریق حساب دانش‌آموزی آکادمی وارد شوید.',true);alert('ابتدا از طریق آکادمی وارد حساب دانش‌آموزی خود شوید.');return;}
+  try{await refreshAccess();show('modes')}catch(error){setStatus('بررسی مجوز بازی ناموفق بود: '+(error.message||'خطای نامشخص'),true);alert('فعلاً امکان بررسی مجوز بازی وجود ندارد. لطفاً دوباره تلاش کنید.');}
+ };
+ window.showModes=function(){show('modes');drawLocks()};
+ const originalStartMode=window.startMode;
+ window.startMode=async function(gameId){
+  if(!GAME_IDS.includes(gameId))return;
+  if(!gameReady){alert('ابتدا از طریق آکادمی وارد حساب دانش‌آموزی خود شوید.');return;}
+  try{
+   const s=await refreshAccess();
+   if(!s.is_explorer&&!s.is_admin){alert('شما باید برای بازی به سطح کاوشگر برسید.');setStatus('شما باید برای بازی به سطح کاوشگر برسید.',true);return;}
+   if(!s.is_admin&&s.played_game_id&&String(s.played_game_id)!==gameId){alert('سهمیهٔ بازی امروز استفاده شده است. فردا می‌توانید یک بازی دیگر انتخاب کنید.');return;}
+   const {data,error}=await gameDb.rpc('shahrak_claim_daily_game',{p_game_id:gameId});
+   if(error)throw error;
+   if(!data||!data.ok){
+    if(data&&data.reason==='level_required'){accessStatus={...s,is_explorer:false};drawLocks();alert('شما باید برای بازی به سطح کاوشگر برسید.');return;}
+    if(data&&data.reason==='daily_limit'){accessStatus={...s,played_game_id:data.played_game_id||s.played_game_id};drawLocks();alert('سهمیهٔ بازی امروز استفاده شده است. فردا می‌توانید یک بازی دیگر انتخاب کنید.');return;}
+    throw new Error(data&&data.error||'مجوز باز کردن بازی صادر نشد.');
+   }
+   await refreshAccess();
+   originalStartMode(gameId);
+  }catch(error){console.error('Shahrak game access denied:',error);alert('بررسی مجوز بازی انجام نشد. لطفاً اتصال اینترنت را بررسی کنید.');setStatus('بررسی مجوز بازی ناموفق بود؛ تا تأیید سرور بازی باز نمی‌شود.',true);}
+ };
+ async function boot(){
+  try{
+   initClient();
+   const handed=await requestAcademyHandoff();
+   if(!handed)await resumeExistingSession();
+   if(!gameReady){setStatus('برای ورود به شهرک بازی، ابتدا از طریق آکادمی وارد شوید.');return;}
+   await refreshAccess();
+  }catch(error){setStatus('اتصال به سامانهٔ مجوز بازی برقرار نشد. ابتدا تنظیمات پایگاه داده را اجرا کنید.',true);console.error(error)}
+ }
+ boot();
+})();
+</script>
+
 </body></html>
