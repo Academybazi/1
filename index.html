@@ -511,7 +511,7 @@ window.getAcademyStudent=()=>student?({first_name:student.first_name||'',last_na
 window.academyQuizBridge={
  getStudent:()=>student&&!teacher?({first_name:student.first_name||'',last_name:student.last_name||''}):null,
  getStaff:()=>teacher?({is_admin:!!teacher.is_admin,display_name:teacher.display_name||teacher.name||'',permissions:Array.isArray(teacher.permissions)?teacher.permissions:[]}):null,
- start:async(examId)=>{if(!db||!student||teacher)throw new Error('ابتدا به‌عنوان دانش‌آموز وارد آکادمی شوید.');const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:examId});if(error){const message=String(error.message||'');if(/retake not authorized|already attempted|one attempt|قبلاً در این آزمون شرکت کرده|قبلاً شرکت کرده/i.test(message))throw new Error('ورود به آزمون انجام نشد.');if(/not authorized|not allowed|permission denied|مجاز به شرکت/i.test(message))throw new Error('مجوز ورود به این آزمون از سمت پایگاه داده تأیید نشد.');throw error;}return data;},
+ start:async(examId)=>{if(!db||!student||teacher)throw new Error('ابتدا به‌عنوان دانش‌آموز وارد آکادمی شوید.');const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:examId});if(error){const message=String(error.message||'');if(/retake not authorized|already attempted|one attempt|قبلاً در این آزمون شرکت کرده|قبلاً شرکت کرده/i.test(message))throw new Error('ورود به آزمون انجام نشد.');if(/not authorized|not allowed|permission denied|مجاز به شرکت/i.test(message))throw new Error('مجوز ورود به این آزمون از سمت پایگاه داده تأیید نشد.');throw error;}window.academyAssertAttemptStarted?.(data);return data;},
  save:async(attemptId,questionId,answer)=>{const {data,error}=await db.rpc('save_exam_answer_with_feedback',{p_attempt_id:attemptId,p_question_id:questionId,p_answer:answer});if(error)throw error;return data;},
  finish:async(attemptId)=>{const {data,error}=await db.rpc('finish_exam_attempt',{p_attempt_id:attemptId});if(error)throw error;return data;},
  result:async(attemptId)=>{const {data,error}=await db.rpc('get_student_exam_result',{p_attempt_id:attemptId});if(error)throw error;return data;},
@@ -522,6 +522,33 @@ window.academyShowTopAttemptNotice=function(message){
  let note=document.getElementById('academyTopAttemptNotice');
  if(!note){note=document.createElement('div');note.id='academyTopAttemptNotice';note.setAttribute('role','alert');note.setAttribute('aria-live','assertive');note.style.cssText='position:sticky;top:0;z-index:9999;margin:0;padding:14px 18px;border-bottom:2px solid #d97706;background:#fff7e6;color:#854d0e;text-align:center;font-weight:900;line-height:1.9;box-shadow:0 4px 14px rgba(0,0,0,.1)';document.body.insertBefore(note,document.body.firstChild);}
  note.textContent=message;note.hidden=false;window.scrollTo({top:0,behavior:'smooth'});
+};
+// پاسخ ویژهٔ پایگاه داده: تلاش قبلی نهایی شده، اما مجوز شروع مجدد وجود ندارد.
+window.academyAssertAttemptStarted=function(data){
+ if(data&&data.attempt_finished===true&&!data.attempt_id){
+  const error=new Error('retake not authorized');
+  error.code='RETAKE_NOT_AUTHORIZED';
+  error.finishedAttemptId=data.finished_attempt_id;
+  throw error;
+ }
+ return data;
+};
+// نمایش کارنامهٔ تلاشی که در زمان ورود مجدد، به‌علت پایان مهلت نهایی شده است.
+window.academyShowFinishedAttemptResult=async function(exam,error){
+ const attemptId=error?.finishedAttemptId;
+ if(!attemptId)throw new Error('شناسهٔ تلاش نهایی‌شده دریافت نشد.');
+ const {data,error:resultError}=await db.rpc('get_student_exam_result',{p_attempt_id:attemptId});
+ if(resultError)throw resultError;
+ activeExam=exam||activeExam;
+ activeAttempt=null;
+ activeQuestions=[];
+ activeAnswers={};
+ answerSaveQueue=Promise.resolve();
+ if(typeof showExamPanel==='function'){
+  showExamPanel(exam?.title||'نتیجه مسابقه',exam?`آزمون ${exam.subject} · درس ${fa(exam.lesson_number)} · پایان‌یافته`:'نتیجه آزمون');
+ }
+ renderStudentResult(data,true);
+ toast('زمان آزمون قبلی به پایان رسیده بود؛ کارنامهٔ همان تلاش نمایش داده شد.');
 };
 const academyOriginalBridgeStart=window.academyQuizBridge.start;
 window.academyQuizBridge.start=async function(examId){
@@ -908,7 +935,7 @@ window.addEventListener('resize',()=>document.querySelectorAll('.academy-match-b
 if(!window._academyMatchObserver){window._academyMatchObserver=new MutationObserver(()=>window.academyMatchInit(document));window._academyMatchObserver.observe(document.getElementById('examPanel')||document.body,{childList:true,subtree:true});}
 function setAnswer(id,value){const q=activeQuestions.find(item=>String(item.id)===String(id));const single=!!q&&['single_choice','true_false','yes_no'].includes(q.question_type);if(single&&!activeAttempt?.staffPractice&&Object.prototype.hasOwnProperty.call(activeAnswers,id))return;activeAnswers[id]=value;if(single&&!activeAttempt?.staffPractice){const feedback=document.getElementById('feedback_'+id);const card=feedback?.closest('.exam-question');card?.querySelectorAll('input[type=radio]').forEach(input=>input.disabled=true);card?.classList.add('answer-locked')}saveOneAnswer(id,value)}function toggleMultiAnswer(id,value,checked){let a=Array.isArray(activeAnswers[id])?[...activeAnswers[id]]:[];if(checked&&!a.some(x=>JSON.stringify(x)===JSON.stringify(value)))a.push(value);if(!checked)a=a.filter(x=>JSON.stringify(x)!==JSON.stringify(value));activeAnswers[id]=a;saveOneAnswer(id,a)}
 let answerSaveQueue=Promise.resolve();function saveOneAnswer(questionId,answer){if(!activeAttempt||activeAttempt.preview)return;const feedback=document.getElementById('feedback_'+questionId);if(feedback){feedback.textContent='در حال بررسی پاسخ...';feedback.className='question-feedback pending'}const attemptId=activeAttempt.attempt_id;answerSaveQueue=answerSaveQueue.then(async()=>{const {data,error}=await db.rpc('save_exam_answer_with_feedback',{p_attempt_id:attemptId,p_question_id:questionId,p_answer:answer});if(error)throw error;const result=Array.isArray(data)?data[0]:data;if(String(activeAttempt?.attempt_id||'')!==String(attemptId)||JSON.stringify(activeAnswers[questionId])!==JSON.stringify(answer))return;if(feedback){const correctText=result?.is_correct===false&&result?.correct_answer?` پاسخ صحیح: ${result.correct_answer}`:'';feedback.textContent=(result?.feedback||'پاسخ ثبت شد.')+correctText;feedback.className='question-feedback '+(result?.is_correct===true?'correct':result?.is_correct===false?'incorrect':'neutral');}}).catch(e=>{if(feedback){feedback.textContent='ذخیره یا بررسی پاسخ انجام نشد. اتصال را بررسی کنید.';feedback.className='question-feedback incorrect'}toast('ذخیره پاسخ انجام نشد: '+(e.message||'خطای نامشخص'))});}
-async function beginExam(exam){if(!student){toast('ابتدا وارد حساب دانش‌آموز شوید.');return}try{const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:exam.id});if(error)throw error;activeExam=exam;activeAttempt=data;activeQuestions=data.questions||[];activeAnswers={};showExamPanel(exam.title,`آزمون ${exam.subject} · درس ${fa(exam.lesson_number)} · تلاش شماره ${fa(data.attempt_number)}`);renderExamQuestions();examDeadline=null;startExamClock();}catch(e){const message=String(e?.message||'');if(/retake not authorized/i.test(message))window.academyShowTopAttemptNotice?.('ورود به آزمون انجام نشد.');toast(/retake not authorized/i.test(message)?'ورود به آزمون انجام نشد.':(message||'شروع آزمون امکان‌پذیر نیست.'))}}
+async function beginExam(exam){if(!student){toast('ابتدا وارد حساب دانش‌آموز شوید.');return}try{const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:exam.id});if(error)throw error;window.academyAssertAttemptStarted?.(data);activeExam=exam;activeAttempt=data;activeQuestions=data.questions||[];activeAnswers={};showExamPanel(exam.title,`آزمون ${exam.subject} · درس ${fa(exam.lesson_number)} · تلاش شماره ${fa(data.attempt_number)}`);renderExamQuestions();examDeadline=null;startExamClock();}catch(e){if(e?.code==='RETAKE_NOT_AUTHORIZED'){try{await window.academyShowFinishedAttemptResult(exam,e);return;}catch(resultError){toast('آزمون قبلی نهایی شد، اما دریافت کارنامه ناموفق بود: '+(resultError.message||''));return;}}const message=String(e?.message||'');if(/retake not authorized/i.test(message))window.academyShowTopAttemptNotice?.('ورود به آزمون انجام نشد.');toast(/retake not authorized/i.test(message)?'ورود به آزمون انجام نشد.':(message||'شروع آزمون امکان‌پذیر نیست.'))}}
 async function beginAdminExamPreview(exam){
  if(!teacher||!teacherCanAccessExam(exam)){toast('به این آزمون دسترسی ندارید.');return;}
  try{
@@ -934,7 +961,50 @@ function academyStaffPracticeResult(auto){
  document.getElementById('examActions').replaceChildren();activeAttempt=null;
 }
 function renderExamQuestions(){const body=document.getElementById('examBody');body.innerHTML='';activeQuestions.forEach((q,i)=>{const card=document.createElement('article');card.className='exam-question';const title=document.createElement('h3');title.textContent=`سؤال ${fa(i+1)} · ${safeText(q.prompt)}`;card.appendChild(title);if(q.media&&q.media.image_data_uri){const img=document.createElement('img');img.className='academy-rainbow-image';img.src=q.media.image_data_uri;img.alt=q.media.image_alt||'تصویر آموزشی سؤال';img.loading='eager';card.appendChild(img);if(q.media.caption){const cap=document.createElement('p');cap.className='muted';cap.style.textAlign='center';cap.textContent=q.media.caption;card.appendChild(cap);}}else if(q.media&&Object.keys(q.media).length){const m=document.createElement('p');m.className='muted';m.textContent='رسانه یا تصویر همراه سؤال در داده آزمون موجود است.';card.appendChild(m)}const ctl=document.createElement('div');ctl.innerHTML=renderAnswerControl(q,i);card.appendChild(ctl);const feedback=document.createElement('div');feedback.className='question-feedback';feedback.id='feedback_'+q.id;feedback.setAttribute('aria-live','polite');card.appendChild(feedback);body.appendChild(card)});document.getElementById('examActions').innerHTML=activeAttempt?.staffPractice?'<button class="btn pink" onclick="finishExam(false)">پایان آزمون</button>':'<button class="btn pink" onclick="finishExam(false)">پایان و ثبت پاسخ‌ها</button>'}
-function startExamClock(){if(examTimer)clearInterval(examTimer);const meta=document.getElementById('examMeta');const started=Date.parse(activeAttempt?.started_at)||Date.now();const tick=()=>{const elapsed=Math.max(0,Math.floor((Date.now()-started)/1000));const mm=String(Math.floor(elapsed/60)).padStart(2,'0'),ss=String(elapsed%60).padStart(2,'0');if(meta)meta.innerHTML=`زمان‌سنج: <span class="exam-timer">${mm}:${ss}</span>`};tick();examTimer=setInterval(tick,1000)}
+function startExamClock(){
+ if(examTimer)clearInterval(examTimer);
+ const meta=document.getElementById('examMeta');
+ const started=Date.parse(activeAttempt?.started_at)||Date.now();
+ const configuredLimit=Math.max(0,Number(activeAttempt?.duration_seconds)||Number(activeExam?.duration_seconds)||0);
+ if(!activeAttempt?.staffPractice && !(Number(examDeadline)>0) && configuredLimit>0) examDeadline=started+configuredLimit*1000;
+ const deadline=!activeAttempt?.staffPractice && Number(examDeadline)>0 ? Number(examDeadline) : null;
+ let timeoutStarted=false;
+ const tick=()=>{
+  const now=Date.now();
+  if(deadline){
+   const remaining=Math.max(0,Math.ceil((deadline-now)/1000));
+   const mm=String(Math.floor(remaining/60)).padStart(2,'0');
+   const ss=String(remaining%60).padStart(2,'0');
+   if(meta)meta.innerHTML=`زمان باقی‌مانده: <span class="exam-timer">${mm}:${ss}</span>`;
+   if(remaining===0 && !timeoutStarted){
+    timeoutStarted=true;
+    if(examTimer){clearInterval(examTimer);examTimer=null;}
+    document.querySelectorAll('#examBody input, #examBody textarea, #examBody select, #examBody button').forEach(el=>{el.disabled=true;});
+    const action=document.querySelector('#examActions button');
+    if(action){action.disabled=true;action.textContent='زمان آزمون پایان یافت؛ در حال ثبت کارنامه...';}
+    if(meta)meta.textContent='زمان آزمون به پایان رسید؛ پاسخ‌های ثبت‌شده در حال نهایی‌شدن است.';
+    Promise.resolve().then(()=>finishExam(true)).then(()=>{
+     if(activeAttempt){
+      const retry=document.querySelector('#examActions button');
+      if(retry){retry.disabled=false;retry.textContent='ثبت و صدور کارنامه';}
+     }
+    }).catch(error=>{
+     console.error('Automatic exam timeout finalization failed:',error);
+     toast('پایان خودکار آزمون ثبت نشد. لطفاً دکمهٔ پایان آزمون را بزنید.');
+     const retry=document.querySelector('#examActions button');
+     if(retry){retry.disabled=false;retry.textContent='ثبت و صدور کارنامه';}
+    });
+   }
+  }else{
+   const elapsed=Math.max(0,Math.floor((now-started)/1000));
+   const mm=String(Math.floor(elapsed/60)).padStart(2,'0');
+   const ss=String(elapsed%60).padStart(2,'0');
+   if(meta)meta.innerHTML=`زمان‌سنج: <span class="exam-timer">${mm}:${ss}</span>`;
+  }
+ };
+ tick();
+ if(!timeoutStarted)examTimer=setInterval(tick,250);
+}
 async function finishExam(auto){if(!activeAttempt)return;try{if(examTimer){clearInterval(examTimer);examTimer=null}if(activeAttempt.staffPractice){academyStaffPracticeResult(auto);return;}const wait=document.getElementById('examMeta');if(wait)wait.textContent='لطفا صبر کنید در حال آماده سازی کارنامه';const action=document.querySelector('#examActions button');if(action)action.disabled=true;await answerSaveQueue;const {data,error}=await db.rpc('finish_exam_attempt',{p_attempt_id:activeAttempt.attempt_id});if(error)throw error;const result=await db.rpc('get_student_exam_result',{p_attempt_id:activeAttempt.attempt_id});if(result.error)throw result.error;renderStudentResult(result.data,auto)}catch(e){toast('ثبت پایان آزمون انجام نشد: '+e.message);const action=document.querySelector('#examActions button');if(action)action.disabled=false}}
 function renderStudentResult(r,auto){
  const answers=Array.isArray(r.answers)?r.answers:[];
@@ -1342,13 +1412,13 @@ async function academyV33LaunchExamRoute(){
   if(Number(exam.grade)!==gradeNumber(profile.grade))throw Error('این آزمون با پایه حساب دانش‌آموز مطابقت ندارد.');
   // محدودیت قدیمی علوم پنجم درس چهارم حذف شد؛ مجوز ورود طبق وضعیت واقعی حساب و آزمون بررسی می‌شود.
   activeExam=exam;
-  const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:exam.id});if(error)throw error;
+  const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:exam.id});if(error)throw error;window.academyAssertAttemptStarted?.(data);
   activeAttempt=data;activeQuestions=data.questions||[];activeAnswers={};answerSaveQueue=Promise.resolve();
   document.getElementById('examHeading').textContent=exam.title||'مسابقه آموزشی';
   document.getElementById('examMeta').textContent=`${exam.subject} · درس ${fa(exam.lesson_number)} · تلاش ${fa(data.attempt_number)}`;
   renderExamQuestions();
   const limit=Number(data.duration_seconds)||0;if(limit>0){examDeadline=new Date(data.started_at).getTime()+limit*1000;startExamClock();}else{examDeadline=null;document.getElementById('examMeta').textContent+=' · بدون محدودیت زمانی';}
- }catch(e){const message=String(e?.message||'');if(/retake not authorized/i.test(message)&&window.opener&&!window.opener.closed){try{window.opener.postMessage({type:'ACADEMY_EXAM_ALREADY_ATTEMPTED',nonce:params.get('academy_handoff')},location.origin);window.close();return;}catch(_){}}const friendly=/retake not authorized/i.test(message)?'ورود به آزمون انجام نشد.':message;document.getElementById('examHeading').textContent='ورود به آزمون انجام نشد';document.getElementById('examMeta').textContent=friendly;document.getElementById('examBody').innerHTML='';document.getElementById('examActions').replaceChildren();}
+ }catch(e){if(e?.code==='RETAKE_NOT_AUTHORIZED'){try{await window.academyShowFinishedAttemptResult(activeExam,e);return;}catch(resultError){document.getElementById('examHeading').textContent='دریافت کارنامه ناموفق بود';document.getElementById('examMeta').textContent=resultError.message||'خطای نامشخص';document.getElementById('examBody').innerHTML='';document.getElementById('examActions').replaceChildren();return;}}const message=String(e?.message||'');if(/retake not authorized/i.test(message)&&window.opener&&!window.opener.closed){try{window.opener.postMessage({type:'ACADEMY_EXAM_ALREADY_ATTEMPTED',nonce:params.get('academy_handoff')},location.origin);window.close();return;}catch(_){}}const friendly=/retake not authorized/i.test(message)?'ورود به آزمون انجام نشد.':message;document.getElementById('examHeading').textContent='ورود به آزمون انجام نشد';document.getElementById('examMeta').textContent=friendly;document.getElementById('examBody').innerHTML='';document.getElementById('examActions').replaceChildren();}
 }
 
 // مدیر اصلی به‌تنهایی می‌تواند فهرست دستی ۱۰ نفر برتر را ویرایش کند.
@@ -1764,7 +1834,7 @@ function renderQuestionEditorV22(qs){
    <label class="field" style="grid-column:1/-1">توضیحات آزمون<textarea id="v62EditExamDescription">${escapeHtml(ex.description||'')}</textarea></label>
   </div>
   <div class="builder-actions"><button class="btn blue" type="button" onclick="saveExamMetadataV62()">ذخیره مشخصات آزمون</button><button class="soft" type="button" onclick="applyLessonDefaultPointsV63()">اعمال این بارم به همه آزمون‌های همین درس</button><span class="muted">برای فعال‌سازی، تعداد سؤال‌های فعال باید دقیقاً با تعداد تعیین‌شده برابر باشد.</span></div>
-  <p class="muted">این گزینه بارم پیش‌فرض همهٔ آزمون‌های همین پایه، درس و شماره‌درس را تغییر می‌دهد و نمرهٔ شرکت‌کنندگان قبلی را نیز دوباره محاسبه می‌کند.</p>
+  <p class="muted">برای حفظ سوابق شرکت‌کنندگان، هنگام ذخیره مشخصات، پایه، درس و شماره درسِ ثبت‌شده برای آزمون بدون تغییر نگه داشته می‌شود؛ عنوان، توضیحات، زمان، تعداد سؤال و بارم قابل ویرایش‌اند.</p>
  </div>
  <p><b>${escapeHtml(ex.title)}</b> · پایه ${fa(ex.grade)} · ${escapeHtml(ex.subject)} · ${fa(qs.length)} سؤال ثبت‌شده</p>
  <div class="builder-actions"><button class="btn" onclick="newQuestionFormV22()">افزودن سؤال جدید</button><button class="soft" onclick="setExamActiveV37(builderExamV22.id,true)" ${ex.is_active?'disabled':''}>فعال‌سازی آزمون</button><button class="soft" onclick="setExamActiveV37(builderExamV22.id,false)" ${!ex.is_active?'disabled':''}>غیرفعال‌سازی آزمون</button></div>
@@ -1824,7 +1894,7 @@ async function saveExamMetadataV62(){
  try{
   if(!builderExamV22)throw Error('ابتدا یک آزمون را انتخاب کنید.');
   const durationEnabled=val('v62EditDurationEnabled')==='on';const mins=Number(val('v62EditDurationMinutes'));
-  const payload={action:'update_exam',exam_id:builderExamV22.id,title:val('v62EditExamTitle').trim(),description:val('v62EditExamDescription').trim(),grade:Number(val('v62EditExamGrade')),subject:val('v62EditExamSubject'),lesson_number:Number(val('v62EditExamLesson')),duration_seconds:durationEnabled?mins*60:0,question_count:Number(val('v62EditQuestionCount')),score_per_question:Number(val('v62EditScorePerQuestion'))};const editGradeName=({1:'اول',2:'دوم',3:'سوم',4:'چهارم',5:'پنجم',6:'ششم'})[payload.grade];const editCatalog=gradeLessonCatalog[editGradeName]||{};const editSubjectName=Object.keys(editCatalog).find(n=>subjectDbName(n)===payload.subject);if(!editSubjectName||!editCatalog[editSubjectName]?.[payload.lesson_number-1])throw Error('درس و شماره مبحث باید از فهرست همان پایه انتخاب شوند.');
+  const payload={action:'update_exam',exam_id:builderExamV22.id,title:val('v62EditExamTitle').trim(),description:val('v62EditExamDescription').trim(),grade:Number(builderExamV22.grade),subject:builderExamV22.subject,lesson_number:Number(builderExamV22.lesson_number),duration_seconds:durationEnabled?mins*60:0,question_count:Number(val('v62EditQuestionCount')),score_per_question:Number(val('v62EditScorePerQuestion'))};const editGradeName=({1:'اول',2:'دوم',3:'سوم',4:'چهارم',5:'پنجم',6:'ششم'})[payload.grade];const editCatalog=gradeLessonCatalog[editGradeName]||{};const editSubjectName=Object.keys(editCatalog).find(n=>subjectDbName(n)===payload.subject);if(!editSubjectName||!editCatalog[editSubjectName]?.[payload.lesson_number-1])throw Error('درس و شماره مبحث باید از فهرست همان پایه انتخاب شوند.');
   if(durationEnabled&&(!Number.isFinite(mins)||mins<1||mins>240))throw Error('مدت آزمون باید بین ۱ تا ۲۴۰ دقیقه باشد.');
   if(!payload.title||!Number.isInteger(payload.question_count)||payload.question_count<1||payload.question_count>200||!Number.isFinite(payload.score_per_question)||payload.score_per_question<=0)throw Error('عنوان، تعداد سؤال یا بارم را بررسی کنید.');
   const result=await callFunction('academy-admin',payload);if(!result?.ok)throw Error(result?.error||'ذخیره مشخصات آزمون انجام نشد.');
@@ -2328,13 +2398,18 @@ openCatalogLessonExam=async function(lessonNumber,lessonTitle){
       // یک‌بار دیگر به سرور می‌فرستیم تا فقط پاسخ‌های واقعاً ثبت‌شده نهایی شوند.
       await answerSaveQueue;
       if(!activeAttempt || String(activeAttempt.attempt_id)!==String(attemptId)) return;
-      for(const [questionId, answer] of Object.entries(activeAnswers || {})){
-        const {error} = await db.rpc('save_exam_answer_with_feedback',{
-          p_attempt_id:attemptId,
-          p_question_id:questionId,
-          p_answer:answer
-        });
-        if(error) throw error;
+      // در پایان خودکار، مهلت سرور تمام شده است؛ ارسال دوبارهٔ پاسخ‌ها
+      // باعث رد شدن ذخیره‌ها می‌شود. فقط ذخیره‌های صف‌شده پیش از پایان
+      // مهلت انتظار داده می‌شوند و سپس تلاش نهایی می‌شود.
+      if(!auto){
+        for(const [questionId, answer] of Object.entries(activeAnswers || {})){
+          const {error} = await db.rpc('save_exam_answer_with_feedback',{
+            p_attempt_id:attemptId,
+            p_question_id:questionId,
+            p_answer:answer
+          });
+          if(error) throw error;
+        }
       }
       if(!activeAttempt || String(activeAttempt.attempt_id)!==String(attemptId)) return;
       await academyFinishExamV22Base.call(this, auto);
@@ -3658,6 +3733,7 @@ openCatalogLessonExam=async function(lessonNumber,lessonTitle){
     try {
       const { data, error } = await db.rpc('start_exam_attempt', { p_exam_id: exam.id });
       if (error) throw error;
+      window.academyAssertAttemptStarted?.(data);
       if (!data || !Array.isArray(data.questions)) throw Error('سؤال‌های آزمون از پایگاه داده دریافت نشدند.');
       activeExam = exam;
       activeAttempt = data;
@@ -3675,6 +3751,10 @@ openCatalogLessonExam=async function(lessonNumber,lessonTitle){
         startExamClock();
       }
     } catch (e) {
+      if (e?.code === 'RETAKE_NOT_AUTHORIZED') {
+        try { await window.academyShowFinishedAttemptResult(exam, e); return; }
+        catch (resultError) { toast('آزمون قبلی نهایی شد، اما دریافت کارنامه ناموفق بود: ' + (resultError.message || '')); return; }
+      }
       const message = String(e && e.message || 'شروع آزمون امکان‌پذیر نیست.');
       if (/retake not authorized/i.test(message)) {
         window.academyShowTopAttemptNotice?.('ورود به آزمون انجام نشد.');
@@ -5720,11 +5800,11 @@ body.academy-student-instant-view #academyStudentAdventureV124{
   if(!isTarget(exam))return baseBegin.apply(this,arguments);
   if(!student||teacher){toast('ابتدا به‌عنوان دانش‌آموز وارد آکادمی شوید.');return;}
   try{
-   const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:exam.id});if(error)throw error;
+   const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:exam.id});if(error)throw error;window.academyAssertAttemptStarted?.(data);
    const rows=Array.isArray(data?.questions)?data.questions:[];
    if(rows.length&&launch(exam,rows,data,false))return;
    toast('ساختار پاسخ‌های این آزمون برای جورچین کامل نیست؛ نمایش چهارگزینه‌ای غیرفعال شد. لطفاً پاسخ صحیح واژه‌ها را در پنل معلم بررسی کنید.');return;
-  }catch(e){const m=String(e?.message||'');if(/retake not authorized|already attempted|one attempt/i.test(m))window.academyShowTopAttemptNotice?.('ورود به آزمون انجام نشد.');toast('شروع آزمون ناموفق بود: '+(m||'خطای نامشخص'));}
+  }catch(e){if(e?.code==='RETAKE_NOT_AUTHORIZED'){try{await window.academyShowFinishedAttemptResult(exam,e);return;}catch(resultError){toast('آزمون قبلی نهایی شد، اما دریافت کارنامه ناموفق بود: '+(resultError.message||''));return;}}const m=String(e?.message||'');if(/retake not authorized|already attempted|one attempt/i.test(m))window.academyShowTopAttemptNotice?.('ورود به آزمون انجام نشد.');toast('شروع آزمون ناموفق بود: '+(m||'خطای نامشخص'));}
  };
  const basePreview=window.beginAdminExamPreview;
  window.beginAdminExamPreview=async function(exam){
