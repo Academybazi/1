@@ -493,7 +493,6 @@ body.academy-exam-route #academyOnlineCountV1{display:none!important}
 <section id="teacherPanel" class="panel"><div class="panelhead"><h2>🧑‍🏫 پنل مدیریت معلم</h2><button class="soft" onclick="logoutTeacher()">خروج</button></div>
 <section id="academyTeacherOnlineRosterV1" class="builder-box" style="display:block!important;visibility:visible!important;margin:14px 0 18px;border:2px solid #8bd5a9;background:linear-gradient(135deg,#effff5,#f4f8ff);border-radius:18px;padding:18px" aria-live="polite">
  <h3 style="display:block!important;visibility:visible!important;margin:0 0 8px;color:#176b45;font-size:20px">🟢 شرکت‌کنندگان آنلاین</h3>
- <p class="muted" style="margin:0 0 10px">دانش‌آموزانی که با حساب خود وارد آکادمی شده‌اند و اکنون آنلاین هستند.</p>
  <div id="academyTeacherOnlineRosterListV1" class="muted">در حال دریافت فهرست افراد آنلاین...</div>
 </section>
 <div id="teacherIdentity" class="notice" style="font-weight:800;background:#eaf4ff;border:1px solid #b9d8f5;margin-bottom:10px">مشخصات حساب معلم پس از ورود نمایش داده می‌شود.</div><div id="teacherScope" class="notice"></div>
@@ -742,7 +741,7 @@ function subjectDbName(x){return x==='مطالعات اجتماعی'?'اجتما
 function safeText(v){if(v==null)return '';if(typeof v==='string')return v;if(typeof v==='number')return String(v);if(Array.isArray(v))return v.map(safeText).join('، ');if(typeof v==='object')return safeText(v.text??v.title??v.label??v.question??JSON.stringify(v));return String(v)}
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function showExamPanel(title,meta=''){document.getElementById('examPanel').classList.add('show');document.getElementById('examHeading').textContent=title;document.getElementById('examMeta').textContent=meta;document.getElementById('examPanel').scrollIntoView({behavior:'smooth'});}
-function leaveExam(){if(examTimer){clearInterval(examTimer);examTimer=null}activeAttempt=null;activeExam=null;activeQuestions=[];activeAnswers={};document.getElementById('examPanel').classList.remove('show');document.getElementById('examBody').innerHTML='';document.getElementById('examActions').innerHTML='';}
+function leaveExam(){if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null}if(examTimer){clearInterval(examTimer);examTimer=null}activeAttempt=null;activeExam=null;activeQuestions=[];activeAnswers={};document.getElementById('examPanel').classList.remove('show');document.getElementById('examBody').innerHTML='';document.getElementById('examActions').innerHTML='';}
 async function loadAvailableExams(){if(!db)throw Error('کلید عمومی Supabase در فایل تنظیم نشده است.');const grade=gradeNumber(currentGrade);const subject=subjectDbName(currentSubject);let query=db.from('exams').select('id,title,description,grade,subject,lesson_number,duration_seconds,question_count,score_per_question,is_active').eq('grade',grade).eq('subject',subject).eq('is_active',true).order('lesson_number').order('title');const {data,error}=await query;if(error)throw error;return data||[];}
 // فهرست درس‌ها با کارت‌های رنگی هم‌سبک نسخه مرجع v18
 const lessonVisuals={
@@ -992,23 +991,28 @@ function academyStaffPracticeResult(auto){
 }
 function renderExamQuestions(){const body=document.getElementById('examBody');body.innerHTML='';activeQuestions.forEach((q,i)=>{const card=document.createElement('article');card.className='exam-question';const title=document.createElement('h3');title.textContent=`سؤال ${fa(i+1)} · ${safeText(q.prompt)}`;card.appendChild(title);if(q.media&&q.media.image_data_uri){const img=document.createElement('img');img.className='academy-rainbow-image';img.src=q.media.image_data_uri;img.alt=q.media.image_alt||'تصویر آموزشی سؤال';img.loading='eager';card.appendChild(img);if(q.media.caption){const cap=document.createElement('p');cap.className='muted';cap.style.textAlign='center';cap.textContent=q.media.caption;card.appendChild(cap);}}else if(q.media&&Object.keys(q.media).length){const m=document.createElement('p');m.className='muted';m.textContent='رسانه یا تصویر همراه سؤال در داده آزمون موجود است.';card.appendChild(m)}const ctl=document.createElement('div');ctl.innerHTML=renderAnswerControl(q,i);card.appendChild(ctl);const feedback=document.createElement('div');feedback.className='question-feedback';feedback.id='feedback_'+q.id;feedback.setAttribute('aria-live','polite');card.appendChild(feedback);body.appendChild(card)});document.getElementById('examActions').innerHTML=activeAttempt?.staffPractice?'<button class="btn pink" onclick="finishExam(false)">پایان آزمون</button>':'<button class="btn pink" onclick="finishExam(false)">پایان و ثبت پاسخ‌ها</button>'}
 function startExamClock(){
- if(examTimer)clearInterval(examTimer);
+ // تایمر اختصاصی آکادمی؛ از متغیرهای زمان‌سنج بازی‌های توکار مستقل نگه داشته می‌شود.
+ if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null;}
+ if(examTimer){clearInterval(examTimer);examTimer=null;}
  const panel=document.getElementById('examPanel');
  const topbar=panel?.querySelector('.exam-topbar');
  const meta=document.getElementById('examMeta');
- // شمارنده را در صورت نبودن، مستقیماً در نوار بالای صفحه آزمون ایجاد می‌کنیم.
  let countdownBox=document.getElementById('academyExamCountdownV9');
- let countdownValue=document.getElementById('academyExamCountdownValueV9');
  if(!countdownBox&&topbar){
   countdownBox=document.createElement('div');countdownBox.id='academyExamCountdownV9';
   countdownBox.className='academy-exam-countdown-v9';countdownBox.setAttribute('role','timer');countdownBox.setAttribute('aria-live','off');
   const label=document.createElement('span');label.className='academy-exam-countdown-label-v9';label.textContent='زمان باقی‌مانده';
-  countdownValue=document.createElement('strong');countdownValue.id='academyExamCountdownValueV9';countdownValue.textContent='--:--';
-  countdownBox.append(label,countdownValue);topbar.appendChild(countdownBox);
+  const value=document.createElement('strong');value.id='academyExamCountdownValueV9';value.textContent='--:--';
+  countdownBox.append(label,value);topbar.appendChild(countdownBox);
  }
- const setCountdown=(value,visible=true)=>{
-  if(countdownBox){countdownBox.hidden=!visible;countdownBox.style.setProperty('display',visible?'flex':'none','important');}
-  if(countdownValue)countdownValue.textContent=value;
+ // اگر به‌دلیل اجرای دوبارهٔ مسیر، عنصر تکراری ایجاد شده باشد، فقط یک شمارنده باقی بماند.
+ document.querySelectorAll('#examPanel #academyExamCountdownV9').forEach((el,index)=>{if(index>0)el.remove();});
+ const labelEl=countdownBox?.querySelector('.academy-exam-countdown-label-v9');
+ const valueEl=countdownBox?.querySelector('#academyExamCountdownValueV9');
+ const setDisplay=(label,value)=>{
+  if(countdownBox){countdownBox.hidden=false;countdownBox.style.setProperty('display','flex','important');}
+  if(labelEl)labelEl.textContent=label;
+  if(valueEl)valueEl.textContent=value;
  };
  const started=Date.parse(activeAttempt?.started_at)||Date.now();
  const configuredLimit=Math.max(0,Number(activeAttempt?.duration_seconds)||Number(activeExam?.duration_seconds)||0);
@@ -1022,15 +1026,16 @@ function startExamClock(){
    const remaining=Math.max(0,Math.ceil((deadline-now)/1000));
    const mm=String(Math.floor(remaining/60)).padStart(2,'0');
    const ss=String(remaining%60).padStart(2,'0');
-   setCountdown(`${mm}:${ss}`,true);
-   if(meta)meta.innerHTML=`زمان باقی‌مانده: <strong class="exam-timer">${mm}:${ss}</strong>`;
+   setDisplay('زمان باقی‌مانده',`${mm}:${ss}`);
    if(remaining===0&&!timeoutStarted){
-    timeoutStarted=true;if(examTimer){clearInterval(examTimer);examTimer=null;}
+    timeoutStarted=true;
+    if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null;}
+    if(examTimer){clearInterval(examTimer);examTimer=null;}
     document.querySelectorAll('#examBody input, #examBody textarea, #examBody select, #examBody button').forEach(el=>{el.disabled=true;});
     const action=document.querySelector('#examActions button');
     if(action){action.disabled=true;action.textContent='زمان آزمون پایان یافت؛ در حال ثبت کارنامه...';}
     if(meta)meta.textContent='زمان آزمون به پایان رسید؛ پاسخ‌های ثبت‌شده در حال نهایی‌شدن است.';
-    setCountdown('۰۰:۰۰',true);
+    setDisplay('زمان باقی‌مانده','۰۰:۰۰');
     Promise.resolve().then(()=>finishExam(true)).then(()=>{
      if(activeAttempt){const retry=document.querySelector('#examActions button');if(retry){retry.disabled=false;retry.textContent='ثبت و صدور کارنامه';}}
     }).catch(error=>{
@@ -1039,18 +1044,19 @@ function startExamClock(){
     });
    }
   }else{
-   setCountdown('--:--',false);
    const elapsed=Math.max(0,Math.floor((now-started)/1000));
    const mm=String(Math.floor(elapsed/60)).padStart(2,'0');const ss=String(elapsed%60).padStart(2,'0');
-   if(meta)meta.innerHTML=`زمان‌سنج: <span class="exam-timer">${mm}:${ss}</span>`;
+   setDisplay('مدت سپری‌شده',`${mm}:${ss}`);
   }
  };
- if(deadline){setCountdown('--:--',true);}
  tick();
- if(!timeoutStarted)examTimer=setInterval(tick,250);
+ if(!timeoutStarted){
+  window.__academyExamClockInterval=window.setInterval(tick,1000);
+  examTimer=window.__academyExamClockInterval;
+ }
 }
 
-async function finishExam(auto){if(!activeAttempt)return;try{if(examTimer){clearInterval(examTimer);examTimer=null}if(activeAttempt.staffPractice){academyStaffPracticeResult(auto);return;}const wait=document.getElementById('examMeta');if(wait)wait.textContent='لطفا صبر کنید در حال آماده سازی کارنامه';const action=document.querySelector('#examActions button');if(action)action.disabled=true;await answerSaveQueue;const {data,error}=await db.rpc('finish_exam_attempt',{p_attempt_id:activeAttempt.attempt_id});if(error)throw error;const result=await db.rpc('get_student_exam_result',{p_attempt_id:activeAttempt.attempt_id});if(result.error)throw result.error;renderStudentResult(result.data,auto)}catch(e){toast('ثبت پایان آزمون انجام نشد: '+e.message);const action=document.querySelector('#examActions button');if(action)action.disabled=false}}
+async function finishExam(auto){if(!activeAttempt)return;try{if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null}if(examTimer){clearInterval(examTimer);examTimer=null}if(activeAttempt.staffPractice){academyStaffPracticeResult(auto);return;}const wait=document.getElementById('examMeta');if(wait)wait.textContent='لطفا صبر کنید در حال آماده سازی کارنامه';const action=document.querySelector('#examActions button');if(action)action.disabled=true;await answerSaveQueue;const {data,error}=await db.rpc('finish_exam_attempt',{p_attempt_id:activeAttempt.attempt_id});if(error)throw error;const result=await db.rpc('get_student_exam_result',{p_attempt_id:activeAttempt.attempt_id});if(result.error)throw result.error;renderStudentResult(result.data,auto)}catch(e){toast('ثبت پایان آزمون انجام نشد: '+e.message);const action=document.querySelector('#examActions button');if(action)action.disabled=false}}
 function renderStudentResult(r,auto){
  const answers=Array.isArray(r.answers)?r.answers:[];
  const score=Number(r.score)||0,maxScore=Number(r.max_score)||0;
@@ -6091,6 +6097,7 @@ body.academy-student-instant-view #academyStudentAdventureV124{
   let visitorHeartbeat=null,startRetry=null,visitorReconnectTimer=null,studentReconnectTimer=null;
   let visitorChannelStatus='NOT_CREATED',studentChannelStatus='NOT_CREATED';
   let lastVisitorTrackAt=null,lastStudentTrackAt=null,lastVisitorSyncAt=null,lastStudentSyncAt=null,lastVisitorError=null;
+  let lastStudentTrackResult=null,lastStudentTrackError=null,lastStudentIdentity=null;
   let visitorReconnectDelay=2000,studentReconnectDelay=2000;
   const intentionallyRemovedChannels=new WeakSet();
   const studentName=()=>[student?.first_name,student?.last_name].filter(Boolean).map(x=>String(x).trim()).filter(Boolean).join(' ').trim();
@@ -6129,16 +6136,42 @@ body.academy-student-instant-view #academyStudentAdventureV124{
     return {page:new URLSearchParams(location.search).has('academy_exam')?'academy-exam':'academy-home',role:'student',presence_type:'authenticated_student',student_id:student.id||student.student_id||student.user_id||null,student_name:studentName(),first_name:student.first_name||'',last_name:student.last_name||'',grade:student.grade??null,online_at:new Date().toISOString(),tab_id:tabKey};
   }
   async function updateStudentParticipantPresence(){
-    if(!studentChannel||!studentChannelReady)return;
+    if(!studentChannel||!studentChannelReady)return false;
     try{
       const presence=currentStudentPresence();
-      if(presence){await studentChannel.track(presence);lastStudentTrackAt=new Date().toISOString();}
-      else await studentChannel.untrack();
-    }catch(error){console.error('[Academy Presence] student participant presence failed:',error);}
+      if(presence){
+        lastStudentIdentity={student_id:presence.student_id,student_name:presence.student_name,grade:presence.grade};
+        const result=await studentChannel.track(presence);
+        lastStudentTrackResult=typeof result==='string'?result:JSON.stringify(result??null);
+        lastStudentTrackError=null;
+        lastStudentTrackAt=new Date().toISOString();
+        if(result&&result!=='ok')console.info('[Academy Presence] student track result:',result);
+        return true;
+      }
+      lastStudentIdentity=null;
+      const result=await studentChannel.untrack();
+      lastStudentTrackResult='untracked';lastStudentTrackError=null;
+      return !!result;
+    }catch(error){
+      lastStudentTrackError=String(error?.message||error);
+      console.error('[Academy Presence] student participant presence failed:',error);
+      return false;
+    }
   }
-  async function updatePresence(){await trackVisitorPresence();return updateStudentParticipantPresence();}
+  // پس از ورود دانش‌آموز، چند بار با فاصله کوتاه حضور را ثبت می‌کنیم تا
+  // تأخیر بازیابی نشست یا آماده‌شدن کانال باعث جاافتادن ثبت اولیه نشود.
+  function scheduleStudentPresenceRefresh(){
+    [0,500,1500,3500].forEach(delay=>setTimeout(()=>{
+      if(student&&!teacher&&studentChannelReady)updateStudentParticipantPresence();
+    },delay));
+  }
+  async function updatePresence(){
+    await trackVisitorPresence();
+    scheduleStudentPresenceRefresh();
+    return updateStudentParticipantPresence();
+  }
   window.academyUpdateOnlinePresenceV1=updatePresence;
-  window.academyUpdateStudentParticipantPresenceV2=updateStudentParticipantPresence;
+  window.academyUpdateStudentParticipantPresenceV2=()=>{scheduleStudentPresenceRefresh();return updateStudentParticipantPresence();};
 
   function renderStudentRoster(){
     const list=document.getElementById('academyTeacherOnlineRosterListV1');
@@ -6153,7 +6186,7 @@ body.academy-student-instant-view #academyStudentAdventureV124{
     const unique=new Map();rows.forEach(item=>unique.set(String(item.id)+'|'+String(item.grade??''),item));
     const people=[...unique.values()].sort((a,b)=>a.name.localeCompare(b.name,'fa'));
     list.replaceChildren();
-    const diagnostic=document.createElement('div');diagnostic.style.cssText='font-size:12px;color:#536579;margin-bottom:10px;line-height:1.9';diagnostic.textContent='وضعیت ارتباط فهرست: '+studentChannelStatus+' · همگام‌سازی آخر: '+(lastStudentSyncAt?new Date(lastStudentSyncAt).toLocaleTimeString('fa-IR'):'هنوز دریافت نشده')+' · رکوردهای حضور دریافتی: '+new Intl.NumberFormat('fa-IR').format(presenceEntries.length);list.appendChild(diagnostic);
+    const diagnostic=document.createElement('div');diagnostic.style.cssText='font-size:12px;color:#536579;margin-bottom:10px;line-height:1.9';diagnostic.textContent='وضعیت ارتباط فهرست: '+studentChannelStatus+' · همگام‌سازی آخر: '+(lastStudentSyncAt?new Date(lastStudentSyncAt).toLocaleTimeString('fa-IR'):'هنوز دریافت نشده')+' · رکوردهای حضور دریافتی: '+new Intl.NumberFormat('fa-IR').format(presenceEntries.length)+' · آخرین ارسال دانش‌آموز: '+(lastStudentTrackAt?new Date(lastStudentTrackAt).toLocaleTimeString('fa-IR'):'ثبت نشده')+' · نتیجه ارسال: '+(lastStudentTrackError?'خطا: '+lastStudentTrackError:(lastStudentTrackResult||'هنوز ارسال نشده'));list.appendChild(diagnostic);
     if(!people.length){const empty=document.createElement('div');empty.className='empty';empty.textContent=studentChannelReady?'در حال حاضر دانش‌آموز احرازهویت‌شده‌ای در کانال حضور آنلاین دریافت نشده است.':'ارتباط کانال حضور آنلاین برقرار نیست.';list.appendChild(empty);return;}
     const summary=document.createElement('div');summary.style.cssText='font-weight:900;color:#176b45;margin-bottom:9px';summary.textContent='تعداد شرکت‌کنندگان آنلاین: '+new Intl.NumberFormat('fa-IR').format(people.length);list.appendChild(summary);
     const ul=document.createElement('ul');ul.style.cssText='list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px';
@@ -6212,7 +6245,7 @@ body.academy-student-instant-view #academyStudentAdventureV124{
     channel.subscribe(async status=>{
       if(status==='CLOSED'&&intentionallyRemovedChannels.has(channel))return;
       studentChannelStatus=status;console.info('[Academy Presence] authenticated participants channel status:',status);
-      if(status==='SUBSCRIBED'){studentChannelReady=true;studentReconnectDelay=2000;await updateStudentParticipantPresence();renderStudentRoster();}
+      if(status==='SUBSCRIBED'){studentChannelReady=true;studentReconnectDelay=2000;scheduleStudentPresenceRefresh();await updateStudentParticipantPresence();renderStudentRoster();}
       else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){studentChannelReady=false;console.error('[Academy Presence] participants channel unavailable:',status);scheduleReconnect('student');const list=document.getElementById('academyTeacherOnlineRosterListV1');if(list&&rosterOpen)list.textContent='در حال اتصال مجدد فهرست شرکت‌کنندگان...';}
     });
   }
@@ -6225,12 +6258,12 @@ body.academy-student-instant-view #academyStudentAdventureV124{
       window.addEventListener('pageshow',refreshOnReturn);
       document.addEventListener('visibilitychange',refreshOnReturn);
       window.addEventListener('online',refreshOnReturn);
-      visitorHeartbeat=setInterval(()=>{if(document.visibilityState==='visible'){trackVisitorPresence();updateStudentParticipantPresence();}},15000);
+      visitorHeartbeat=setInterval(()=>{if(document.visibilityState==='visible'){trackVisitorPresence();updateStudentParticipantPresence();}},10000);
       return true;
     }catch(error){started=false;console.error('[Academy Presence] initialization failed:',error);setLabel('اتصال شمارش افراد آنلاین برقرار نشد');return false;}
   }
   window.academyPresenceDiagnosticsV9=function(){
-    return {href:location.href,pageRole:student&&!teacher?'student':teacher?'teacher':'visitor',studentName:studentName()||null,visitorChannelName,visitorChannelStatus,visitorChannelReady,visitorCount:visitorCount(),visitorPresence:summarize(visitorChannel),lastVisitorTrackAt,lastVisitorSyncAt,lastVisitorError,studentChannelStatus,studentChannelReady,authenticatedStudentPresence:summarize(studentChannel),lastStudentTrackAt,lastStudentSyncAt,tabKey,examRoute:new URLSearchParams(location.search).has('academy_exam'),activeExamId:activeExam?.id||null,configuredDurationSeconds:Number(activeAttempt?.duration_seconds)||Number(activeExam?.duration_seconds)||0,examDeadline:Number(examDeadline)||null};
+    return {href:location.href,pageRole:student&&!teacher?'student':teacher?'teacher':'visitor',studentAuthenticated:!!(student&&!teacher),studentName:studentName()||null,studentProfileId:student?.id||student?.student_id||student?.user_id||null,studentGrade:student?.grade??null,visitorChannelName,visitorChannelStatus,visitorChannelReady,visitorCount:visitorCount(),visitorPresence:summarize(visitorChannel),lastVisitorTrackAt,lastVisitorSyncAt,lastVisitorError,studentChannelName,studentChannelStatus,studentChannelReady,authenticatedStudentPresence:summarize(studentChannel),lastStudentTrackAt,lastStudentSyncAt,lastStudentTrackResult,lastStudentTrackError,lastStudentIdentity,tabKey,examRoute:new URLSearchParams(location.search).has('academy_exam'),activeExamId:activeExam?.id||null,configuredDurationSeconds:Number(activeAttempt?.duration_seconds)||Number(activeExam?.duration_seconds)||0,examDeadline:Number(examDeadline)||null};
   };
   // سازگاری با نام تشخیصی نسخه‌های قبل
   window.academyPresenceDiagnosticsV8=window.academyPresenceDiagnosticsV9;
