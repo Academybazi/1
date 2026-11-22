@@ -741,7 +741,7 @@ function subjectDbName(x){return x==='مطالعات اجتماعی'?'اجتما
 function safeText(v){if(v==null)return '';if(typeof v==='string')return v;if(typeof v==='number')return String(v);if(Array.isArray(v))return v.map(safeText).join('، ');if(typeof v==='object')return safeText(v.text??v.title??v.label??v.question??JSON.stringify(v));return String(v)}
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function showExamPanel(title,meta=''){document.getElementById('examPanel').classList.add('show');document.getElementById('examHeading').textContent=title;document.getElementById('examMeta').textContent=meta;document.getElementById('examPanel').scrollIntoView({behavior:'smooth'});}
-function leaveExam(){if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null}if(examTimer){clearInterval(examTimer);examTimer=null}activeAttempt=null;activeExam=null;activeQuestions=[];activeAnswers={};document.getElementById('examPanel').classList.remove('show');document.getElementById('examBody').innerHTML='';document.getElementById('examActions').innerHTML='';}
+function leaveExam(){if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null}if(examTimer){clearInterval(examTimer);examTimer=null}examDeadline=null;activeAttempt=null;activeExam=null;activeQuestions=[];activeAnswers={};document.getElementById('examPanel').classList.remove('show');document.getElementById('examBody').innerHTML='';document.getElementById('examActions').innerHTML='';}
 async function loadAvailableExams(){if(!db)throw Error('کلید عمومی Supabase در فایل تنظیم نشده است.');const grade=gradeNumber(currentGrade);const subject=subjectDbName(currentSubject);let query=db.from('exams').select('id,title,description,grade,subject,lesson_number,duration_seconds,question_count,score_per_question,is_active').eq('grade',grade).eq('subject',subject).eq('is_active',true).order('lesson_number').order('title');const {data,error}=await query;if(error)throw error;return data||[];}
 // فهرست درس‌ها با کارت‌های رنگی هم‌سبک نسخه مرجع v18
 const lessonVisuals={
@@ -868,9 +868,9 @@ async function showCatalogLesson(lessonNumber,lessonTitle,popup=null){
    }
    const btn=document.createElement('button');btn.className='btn';
    if(student&&!teacher){
-    if((!hasAttempt||hasRetakeGrant)&&!statusUnknown&&ex.is_active===true){btn.textContent='ورود به آزمون';btn.onclick=()=>{if(ex.is_active!==true){toast('این آزمون در حال حاضر غیرفعال است.');return;}if(ex.embeddedKey)showEmbeddedQuiz(ex.title,ex.embeddedKey);else beginExam(ex);};children.push(btn);}
+    if((!hasAttempt||hasRetakeGrant)&&!statusUnknown&&ex.is_active===true){btn.textContent='ورود به آزمون';btn.onclick=()=>{if(ex.is_active!==true){toast('این آزمون در حال حاضر غیرفعال است.');return;}if(ex.embeddedKey)beginEmbeddedExam(ex,false);else beginExam(ex);};children.push(btn);}
    }
-   else if(teacher){btn.textContent='ورود به آزمون';btn.onclick=()=>{if(ex.embeddedKey)showEmbeddedQuiz(ex.title,ex.embeddedKey);else beginAdminExamPreview(ex);};children.push(btn);}
+   else if(teacher){btn.textContent='ورود به آزمون';btn.onclick=()=>{if(ex.embeddedKey)beginEmbeddedExam(ex,true);else beginAdminExamPreview(ex);};children.push(btn);}
    else{btn.textContent='مشاهده گزارش آزمون';btn.onclick=()=>showExamReportV22(ex);children.push(btn);}
    card.append(...children);info.appendChild(card);
   });
@@ -990,6 +990,7 @@ function academyStaffPracticeResult(auto){
  document.getElementById('examActions').replaceChildren();activeAttempt=null;
 }
 function renderExamQuestions(){const body=document.getElementById('examBody');body.innerHTML='';activeQuestions.forEach((q,i)=>{const card=document.createElement('article');card.className='exam-question';const title=document.createElement('h3');title.textContent=`سؤال ${fa(i+1)} · ${safeText(q.prompt)}`;card.appendChild(title);if(q.media&&q.media.image_data_uri){const img=document.createElement('img');img.className='academy-rainbow-image';img.src=q.media.image_data_uri;img.alt=q.media.image_alt||'تصویر آموزشی سؤال';img.loading='eager';card.appendChild(img);if(q.media.caption){const cap=document.createElement('p');cap.className='muted';cap.style.textAlign='center';cap.textContent=q.media.caption;card.appendChild(cap);}}else if(q.media&&Object.keys(q.media).length){const m=document.createElement('p');m.className='muted';m.textContent='رسانه یا تصویر همراه سؤال در داده آزمون موجود است.';card.appendChild(m)}const ctl=document.createElement('div');ctl.innerHTML=renderAnswerControl(q,i);card.appendChild(ctl);const feedback=document.createElement('div');feedback.className='question-feedback';feedback.id='feedback_'+q.id;feedback.setAttribute('aria-live','polite');card.appendChild(feedback);body.appendChild(card)});document.getElementById('examActions').innerHTML=activeAttempt?.staffPractice?'<button class="btn pink" onclick="finishExam(false)">پایان آزمون</button>':'<button class="btn pink" onclick="finishExam(false)">پایان و ثبت پاسخ‌ها</button>'}
+/* تایمر مرکزی آکادمی: همهٔ مسیرهای آزمون از startExamClock استفاده می‌کنند. */
 function startExamClock(){
  // تایمر اختصاصی آکادمی؛ از متغیرهای زمان‌سنج بازی‌های توکار مستقل نگه داشته می‌شود.
  if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null;}
@@ -1032,6 +1033,8 @@ function startExamClock(){
     if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null;}
     if(examTimer){clearInterval(examTimer);examTimer=null;}
     document.querySelectorAll('#examBody input, #examBody textarea, #examBody select, #examBody button').forEach(el=>{el.disabled=true;});
+    // در آزمون‌های بازی‌محور/درون‌صفحه‌ای، قفل‌کردن عناصر داخل iframe از صفحهٔ والد انجام می‌شود.
+    document.querySelectorAll('#examBody iframe').forEach(frame=>{frame.style.pointerEvents='none';frame.setAttribute('aria-disabled','true');frame.setAttribute('tabindex','-1');});
     const action=document.querySelector('#examActions button');
     if(action){action.disabled=true;action.textContent='زمان آزمون پایان یافت؛ در حال ثبت کارنامه...';}
     if(meta)meta.textContent='زمان آزمون به پایان رسید؛ پاسخ‌های ثبت‌شده در حال نهایی‌شدن است.';
@@ -1056,7 +1059,7 @@ function startExamClock(){
  }
 }
 
-async function finishExam(auto){if(!activeAttempt)return;try{if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null}if(examTimer){clearInterval(examTimer);examTimer=null}if(activeAttempt.staffPractice){academyStaffPracticeResult(auto);return;}const wait=document.getElementById('examMeta');if(wait)wait.textContent='لطفا صبر کنید در حال آماده سازی کارنامه';const action=document.querySelector('#examActions button');if(action)action.disabled=true;await answerSaveQueue;const {data,error}=await db.rpc('finish_exam_attempt',{p_attempt_id:activeAttempt.attempt_id});if(error)throw error;const result=await db.rpc('get_student_exam_result',{p_attempt_id:activeAttempt.attempt_id});if(result.error)throw result.error;renderStudentResult(result.data,auto)}catch(e){toast('ثبت پایان آزمون انجام نشد: '+e.message);const action=document.querySelector('#examActions button');if(action)action.disabled=false}}
+async function finishExam(auto){if(!activeAttempt)return;try{if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null}if(examTimer){clearInterval(examTimer);examTimer=null}examDeadline=null;if(activeAttempt.staffPractice){academyStaffPracticeResult(auto);return;}const wait=document.getElementById('examMeta');if(wait)wait.textContent='لطفا صبر کنید در حال آماده سازی کارنامه';const action=document.querySelector('#examActions button');if(action)action.disabled=true;await answerSaveQueue;const {data,error}=await db.rpc('finish_exam_attempt',{p_attempt_id:activeAttempt.attempt_id});if(error)throw error;const result=await db.rpc('get_student_exam_result',{p_attempt_id:activeAttempt.attempt_id});if(result.error)throw result.error;renderStudentResult(result.data,auto)}catch(e){toast('ثبت پایان آزمون انجام نشد: '+e.message);const action=document.querySelector('#examActions button');if(action)action.disabled=false}}
 function renderStudentResult(r,auto){
  const answers=Array.isArray(r.answers)?r.answers:[];
  const score=Number(r.score)||0,maxScore=Number(r.max_score)||0;
@@ -2169,8 +2172,11 @@ openCatalogLessonExam=async function(lessonNumber,lessonTitle){
    const body=document.getElementById('examBody');
    const actions=document.getElementById('examActions');
    if(!panel||!body)throw new Error('بخش نمایش آزمون در صفحه پیدا نشد.');
+   if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null;}
    if(examTimer){clearInterval(examTimer);examTimer=null;}
-   activeAttempt=null;activeExam=null;activeQuestions=[];activeAnswers={};
+   // اطلاعات تلاش و آزمون توسط مسیر یکپارچهٔ beginEmbeddedExam تنظیم می‌شود.
+   activeQuestions=Array.isArray(activeAttempt?.questions)?activeAttempt.questions:[];
+   activeAnswers={};
    body.replaceChildren();
    academyEmbeddedFrame=document.createElement('iframe');
    academyEmbeddedFrame.title=title;
@@ -2193,10 +2199,39 @@ openCatalogLessonExam=async function(lessonNumber,lessonTitle){
    body.appendChild(academyEmbeddedFrame);
    if(actions)actions.replaceChildren();
    showExamPanel(title,'آزمون در همین صفحه اجرا می‌شود.');
+   startExamClock();
    const back=panel.querySelector('.panelhead button');
    if(back){back.textContent='بازگشت به درس‌ها';back.onclick=()=>leaveExam();}
   }catch(e){toast('نمایش آزمون ناموفق بود: '+(e.message||'خطای نامشخص'));}
  };
+
+ // همهٔ آزمون‌های درون‌صفحه‌ای نیز از همان شروع تلاش، مهلت و شمارندهٔ مرکزی استفاده می‌کنند.
+ async function beginEmbeddedExam(ex,preview=false){
+  if(!ex||ex.is_active!==true){toast('این آزمون در حال حاضر غیرفعال است.');return;}
+  try{
+   let attempt=null;
+   if(preview){
+    if(!teacher||!teacherCanAccessExam(ex)){toast('به این آزمون دسترسی ندارید.');return;}
+    attempt={staffPractice:true,started_at:new Date().toISOString(),duration_seconds:Number(ex.duration_seconds)||0};
+   }else{
+    if(!student||teacher){toast('ابتدا با حساب دانش‌آموز وارد آکادمی شوید.');return;}
+    const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:ex.id});
+    if(error)throw error;
+    window.academyAssertAttemptStarted?.(data);
+    attempt=data||{};
+    if(!Number(attempt.duration_seconds)&&Number(ex.duration_seconds)>0)attempt.duration_seconds=Number(ex.duration_seconds);
+   }
+   activeExam=ex;activeAttempt=attempt;activeQuestions=Array.isArray(attempt.questions)?attempt.questions:[];activeAnswers={};
+   answerSaveQueue=Promise.resolve();examDeadline=null;
+   showEmbeddedQuiz(ex.title,ex.embeddedKey);
+  }catch(error){
+   if(error?.code==='RETAKE_NOT_AUTHORIZED'){
+    try{await window.academyShowFinishedAttemptResult(ex,error);}catch(resultError){toast('دریافت کارنامه ناموفق بود: '+(resultError.message||''));}
+    return;
+   }
+   toast('شروع آزمون ناموفق بود: '+(error?.message||'خطای نامشخص'));
+  }
+ }
 
  const academyLeaveExamBase=leaveExam;
  leaveExam=function(){
