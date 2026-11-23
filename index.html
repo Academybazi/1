@@ -6118,7 +6118,7 @@ body.academy-student-instant-view #academyStudentAdventureV124{
 </script>
 
 <script>
-/* حضور زنده آکادمی: شمارش بازدیدکنندگان و فهرست دانش‌آموزان آنلاین در پنل معلم — اصلاح فیلتر فهرست v5 */
+/* حضور زنده آکادمی: جلوگیری از ارسال هم‌زمان ضربان و ادغام حضورهای تکراری دانش‌آموز — v6 */
 (function academyOnlinePresenceV3(){
   'use strict';
   const root=document.getElementById('academyOnlineCountV1');
@@ -6130,6 +6130,7 @@ body.academy-student-instant-view #academyStudentAdventureV124{
   const tabKey=window.__academyPresenceTabId||(window.__academyPresenceTabId=makeKey());
   let visitorChannel=null,studentChannel=null,started=false,visitorChannelReady=false,studentChannelReady=false,rosterOpen=false;
   let visitorHeartbeat=null,startRetry=null,visitorReconnectTimer=null,studentReconnectTimer=null;
+  let visitorTrackInFlight=false,studentTrackInFlight=false;
   let visitorChannelStatus='NOT_CREATED',studentChannelStatus='NOT_CREATED';
   let lastVisitorTrackAt=null,lastStudentTrackAt=null,lastVisitorSyncAt=null,lastStudentSyncAt=null,lastVisitorError=null;
   let lastStudentTrackResult=null,lastStudentTrackError=null,lastStudentIdentity=null;
@@ -6157,7 +6158,8 @@ body.academy-student-instant-view #academyStudentAdventureV124{
     return {page:examRoute?'academy-exam':'academy-home',role:student&&!teacher?'student':teacher?'teacher':'visitor',online_at:new Date().toISOString(),tab_id:tabKey,online_id:tabKey};
   }
   async function trackVisitorPresence(){
-    if(!visitorChannel||!visitorChannelReady)return false;
+    if(!visitorChannel||!visitorChannelReady||visitorTrackInFlight)return false;
+    visitorTrackInFlight=true;
     try{
       const result=await visitorChannel.track(currentVisitorPresence());
       lastVisitorTrackAt=new Date().toISOString();
@@ -6165,13 +6167,15 @@ body.academy-student-instant-view #academyStudentAdventureV124{
       refreshVisitorCount();
       return true;
     }catch(error){lastVisitorError=String(error?.message||error);console.error('[Academy Presence] visitor track failed:',error);return false;}
+    finally{visitorTrackInFlight=false;}
   }
   function currentStudentPresence(){
     if(!student||teacher)return null;
     return {page:new URLSearchParams(location.search).has('academy_exam')?'academy-exam':'academy-home',role:'student',presence_type:'authenticated_student',student_id:student.id||student.student_id||student.user_id||null,student_name:studentName(),first_name:student.first_name||'',last_name:student.last_name||'',grade:student.grade??null,online_at:new Date().toISOString(),tab_id:tabKey};
   }
   async function updateStudentParticipantPresence(){
-    if(!studentChannel||!studentChannelReady)return false;
+    if(!studentChannel||!studentChannelReady||studentTrackInFlight)return false;
+    studentTrackInFlight=true;
     try{
       const presence=currentStudentPresence();
       if(presence){
@@ -6192,6 +6196,7 @@ body.academy-student-instant-view #academyStudentAdventureV124{
       console.error('[Academy Presence] student participant presence failed:',error);
       return false;
     }
+    finally{studentTrackInFlight=false;}
   }
   // پس از ورود دانش‌آموز، چند بار با فاصله کوتاه حضور را ثبت می‌کنیم تا
   // تأخیر بازیابی نشست یا آماده‌شدن کانال باعث جاافتادن ثبت اولیه نشود.
@@ -6216,12 +6221,16 @@ body.academy-student-instant-view #academyStudentAdventureV124{
     presenceEntries.forEach(p=>{
       if(p.role!=='student'||p.presence_type!=='authenticated_student')return;
       const name=String(p.student_name||[p.first_name,p.last_name].filter(Boolean).join(' ')||'').trim();
-      if(name)rows.push({name,grade:p.grade??null,id:p.student_id||p.tab_id||name});
+      if(name)rows.push({name,grade:p.grade??null,id:p.student_id||null,tab_id:p.tab_id||null});
     });
-    const unique=new Map();rows.forEach(item=>unique.set(String(item.id)+'|'+String(item.grade??''),item));
+    const unique=new Map();
+    rows.forEach(item=>{
+      const normalizedName=item.name.replace(/\\s+/g,' ').trim().toLocaleLowerCase('fa');
+      const identity=item.id&&String(item.id)!==String(item.tab_id||'')?String(item.id):('name:'+normalizedName);
+      unique.set(identity+'|'+String(item.grade??''),item);
+    });
     const people=[...unique.values()].sort((a,b)=>a.name.localeCompare(b.name,'fa'));
     list.replaceChildren();
-    const diagnostic=document.createElement('div');diagnostic.style.cssText='font-size:12px;color:#536579;margin-bottom:10px;line-height:1.9';diagnostic.textContent='وضعیت ارتباط فهرست: '+studentChannelStatus+' · همگام‌سازی آخر: '+(lastStudentSyncAt?new Date(lastStudentSyncAt).toLocaleTimeString('fa-IR'):'هنوز دریافت نشده')+' · رکوردهای حضور دریافتی: '+new Intl.NumberFormat('fa-IR').format(presenceEntries.length)+' · آخرین ارسال دانش‌آموز: '+(lastStudentTrackAt?new Date(lastStudentTrackAt).toLocaleTimeString('fa-IR'):'ثبت نشده')+' · نتیجه ارسال: '+(lastStudentTrackError?'خطا: '+lastStudentTrackError:(lastStudentTrackResult||'هنوز ارسال نشده'));list.appendChild(diagnostic);
     if(!people.length){const empty=document.createElement('div');empty.className='empty';empty.textContent=studentChannelReady?'در حال حاضر دانش‌آموز احرازهویت‌شده‌ای در کانال حضور آنلاین دریافت نشده است.':'ارتباط کانال حضور آنلاین برقرار نیست.';list.appendChild(empty);return;}
     const summary=document.createElement('div');summary.style.cssText='font-weight:900;color:#176b45;margin-bottom:9px';summary.textContent='تعداد شرکت‌کنندگان آنلاین: '+new Intl.NumberFormat('fa-IR').format(people.length);list.appendChild(summary);
     const ul=document.createElement('ul');ul.style.cssText='list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px';
