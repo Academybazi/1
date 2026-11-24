@@ -2721,11 +2721,49 @@ openCatalogLessonExam=async function(lessonNumber,lessonTitle){
   document.querySelectorAll('#teacherWorkTabsV30 button').forEach(b=>b.classList.toggle('active',b.dataset.target===which));
   try{sessionStorage.setItem('academyTeacherColumnV30',which)}catch{}
  }
+ // V31 FIX: تضمین نمایش بخش امتیاز دستی برای معلم و مدیر.
+ // در بعضی چیدمان‌های قدیمی، پنل امتیاز زیر ریشهٔ مخفی مدیر باقی می‌ماند
+ // یا دکمهٔ آن پس از بازسازی منو در دسترس نیست. این تابع جایگاه و دکمه را
+ // پس از هر ورود معلم ترمیم می‌کند؛ مجوز واقعی همچنان در Edge Function کنترل می‌شود.
+ function ensureManualRewardsForTeacherV31(){
+  if(!teacher)return;
+  const panel=document.getElementById('teacherPanel');
+  if(!panel)return;
+  const tabs=document.getElementById('teacherWorkTabsV30');
+  const rewards=document.getElementById('teacherRewardsColumnV1');
+  if(!tabs||!rewards)return;
+  // پنل امتیاز نباید داخل ریشه‌ای باشد که برای معلم عادی مخفی می‌شود.
+  const adminRoot=document.getElementById('teacherAdmin');
+  if(adminRoot && adminRoot.contains(rewards)){
+   const anchor=tabs.parentElement===panel?tabs:panel.querySelector('#teacherWorkTabsV30');
+   if(anchor)anchor.insertAdjacentElement('afterend',rewards);else panel.appendChild(rewards);
+  }
+  // دکمهٔ امتیاز دستی برای همهٔ معلمان و مدیران قابل مشاهده باشد.
+  let rewardTab=tabs.querySelector('button[data-target="rewards"]');
+  if(!rewardTab){
+   rewardTab=document.createElement('button');
+   rewardTab.type='button';rewardTab.dataset.target='rewards';rewardTab.textContent='🎁 امتیاز دستی';
+   tabs.appendChild(rewardTab);
+   rewardTab.addEventListener('click',()=>showColumn('rewards'));
+  }
+  rewardTab.style.display='inline-flex';
+  rewardTab.hidden=false;
+  rewards.style.display='none';
+  // اگر پنل قبلاً از چیدمان مدیر منتقل شده باشد، آن را به پنل کاری معلم برگردان.
+  if(!panel.contains(rewards)){
+   const examColumn=document.getElementById('teacherExamColumnV30');
+   if(examColumn && examColumn.parentElement===panel)examColumn.insertAdjacentElement('afterend',rewards);
+   else tabs.insertAdjacentElement('afterend',rewards);
+  }
+  // رویداد اصلی تب در mountColumns به showColumn('rewards') متصل شده است؛
+  // از افزودن شنوندهٔ دوم و ارسال درخواست تکراری جلوگیری می‌کنیم.
+ }
  const oldLogin=teacherLogin;
  teacherLogin=async function(){
   await oldLogin.apply(this,arguments);
   if(teacher){
     mountColumns();
+    ensureManualRewardsForTeacherV31();
     // پنل امتیاز دستی در نسخهٔ قبل از ساخته‌شدن سایدبار ایجاد می‌شد؛
     // پس از mountColumns آن را به pane واقعی منتقل می‌کنیم و پیام جایگزین را حذف می‌کنیم.
     const rewardPane=document.getElementById('teacherAdminPaneV84_rewards');
