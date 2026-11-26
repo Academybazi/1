@@ -1051,6 +1051,17 @@ function startExamClock(){
  let timeoutStarted=false;
  const tick=()=>{
   const now=Date.now();
+  // زمان فقط در سربرگ داخلی جورچین به‌روزرسانی می‌شود؛ نمایشگر بالایی وجود ندارد.
+  const puzzleClock=document.querySelector('#examBody iframe')?.contentDocument?.getElementById('academyPuzzleClockValue');
+  const clockLabel=puzzleClock?.parentElement?.querySelector('small');
+  const elapsed=Math.max(0,Math.floor((now-started)/1000));
+  const shownSeconds=deadline?Math.max(0,Math.ceil((deadline-now)/1000)):elapsed;
+  if(puzzleClock){
+   const mm=fa(String(Math.floor(shownSeconds/60)).padStart(2,'0'));
+   const ss=fa(String(shownSeconds%60)).padStart(2,'0');
+   puzzleClock.textContent=`${mm}:${ss}`;
+   if(clockLabel)clockLabel.textContent=deadline?'زمان باقی‌مانده':'زمان سپری‌شده';
+  }
   if(deadline){
    const remaining=Math.max(0,Math.ceil((deadline-now)/1000));
    if(remaining===0&&!timeoutStarted){
@@ -6467,7 +6478,8 @@ body.academy-student-instant-view #academyStudentAdventureV124{
   else{activeExam=exam;activeAttempt={staffPractice:true,started_at:new Date().toISOString(),duration_seconds:Math.max(0,Number(exam?.duration_seconds)||0)};activeQuestions=rows;activeAnswers={};}
   body.replaceChildren();panel.classList.add('academy-puzzle-integrated');const frame=document.createElement('iframe');frame.title='جورچین کلمات';frame.setAttribute('aria-label','جورچین کلمات');frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms');frame.setAttribute('scrolling','no');frame.style.cssText='display:block;width:100%;height:700px;min-height:0;max-height:none;border:0;border-radius:0;background:transparent;overflow:hidden';
   let puzzleResizeObserver=null;
-  const resizePuzzleFrame=()=>{try{const doc=frame.contentDocument;if(!doc?.body)return;const view=doc.defaultView;const nodes=[...doc.body.children].filter(el=>!['SCRIPT','STYLE'].includes(el.tagName));const bottom=nodes.reduce((max,el)=>Math.max(max,el.getBoundingClientRect().bottom+(view?.scrollY||0)),0);const bodyStyle=view?.getComputedStyle(doc.body);const padBottom=parseFloat(bodyStyle?.paddingBottom)||0;const nextHeight=Math.max(260,Math.ceil(bottom+padBottom+14));if(Math.abs((parseFloat(frame.style.height)||0)-nextHeight)>3)frame.style.height=nextHeight+'px';const timer=doc.getElementById('academyPuzzleClockValue');}catch(e){console.warn('Puzzle frame resize:',e);}};
+  let puzzleResizePending=false;
+  const resizePuzzleFrame=()=>{if(puzzleResizePending)return;puzzleResizePending=true;requestAnimationFrame(()=>{puzzleResizePending=false;try{const doc=frame.contentDocument;if(!doc?.body)return;const root=doc.documentElement;const contentHeight=Math.max(root?.scrollHeight||0,doc.body.scrollHeight||0,doc.body.offsetHeight||0);const nextHeight=Math.max(260,Math.min(2400,Math.ceil(contentHeight+14)));const currentHeight=parseFloat(frame.style.height)||0;if(Math.abs(currentHeight-nextHeight)>4)frame.style.height=nextHeight+'px';}catch(e){console.warn('Puzzle frame resize:',e);}});};
   frame.addEventListener('load',()=>{try{const doc=frame.contentDocument;resizePuzzleFrame();if(typeof ResizeObserver!=='undefined'&&doc?.body){puzzleResizeObserver=new ResizeObserver(()=>resizePuzzleFrame());[...doc.body.children].filter(el=>!['SCRIPT','STYLE'].includes(el.tagName)).forEach(el=>puzzleResizeObserver.observe(el));}doc?.fonts?.ready?.then(resizePuzzleFrame);doc?.querySelectorAll('img').forEach(img=>img.addEventListener('load',resizePuzzleFrame));window.addEventListener('resize',resizePuzzleFrame);frame.__academyCleanup=()=>{try{puzzleResizeObserver?.disconnect();window.removeEventListener('resize',resizePuzzleFrame);}catch(_){}};}catch(e){console.warn(e);}}, {once:true});
   frame.srcdoc=html;body.appendChild(frame);if(actions)actions.replaceChildren();showExamPanel(exam.title||'جورچین کلمات',preview?'پیش‌نمایش معلم · جورچین کلمات':`فارسی پایه ${faNum(exam.grade)} · درس ${faNum(exam.lesson_number)} · آزمون جورچین`);
   // آزمون جورچین داخل iframe اجرا می‌شود؛ ساعت باید در صفحهٔ والد راه‌اندازی شود.
