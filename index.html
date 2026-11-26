@@ -7209,3 +7209,45 @@ body.academy-student-instant-view #academyStudentAdventureV124{
 })();
 </script>
 
+
+
+<script id="academy-matching-pairs-result-return-v1">
+(function(){
+ 'use strict';
+ function isPairsResult(){
+  try{return Array.isArray(window.activeQuestions)&&window.activeQuestions.some(q=>q&&q.question_type==='matching_pairs');}
+  catch(_){return false;}
+ }
+ function ensurePairsReturnButton(){
+  const panel=document.getElementById('examPanel');
+  const actions=document.getElementById('examActions');
+  if(!panel||!actions)return;
+  if(actions.querySelector('[data-pairs-result-return]'))return;
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='btn blue';
+  button.setAttribute('data-pairs-result-return','1');
+  button.textContent='بازگشت به درس‌ها';
+  button.style.cssText='display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 24px;margin:14px auto;border-radius:14px;font-weight:900;cursor:pointer';
+  button.addEventListener('click',function(){
+   if(typeof window.leaveExam==='function')window.leaveExam();
+  });
+  actions.replaceChildren(button);
+  actions.style.cssText+=';display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:10px';
+ }
+ const studentResultBase=window.renderStudentResult;
+ if(typeof studentResultBase==='function')window.renderStudentResult=function(){
+  const pairs=isPairsResult();
+  const result=studentResultBase.apply(this,arguments);
+  if(pairs)ensurePairsReturnButton();
+  return result;
+ };
+ const staffResultBase=window.academyStaffPracticeResult;
+ if(typeof staffResultBase==='function')window.academyStaffPracticeResult=function(){
+  const pairs=isPairsResult();
+  const result=staffResultBase.apply(this,arguments);
+  if(pairs)ensurePairsReturnButton();
+  return result;
+ };
+})();
+</script>
