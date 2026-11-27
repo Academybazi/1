@@ -2256,17 +2256,22 @@ teacherLogin=async function(){await academyTeacherLoginV62Base();if(teacher){con
 
 
 
-// راهنمای آکادمی: چهار مرحلهٔ اصلی دانش‌آموز
+// راهنمای آکادمی: عضویت و ورود دانش‌آموزان
 const academyOpenInfoV66=openInfo;
 openInfo=function(key){
  if(key!=='guide'){return academyOpenInfoV66(key);}
  openModal(`<div class="academy-guide-v67" dir="rtl">
-  <h2 style="margin:0 0 16px;text-align:center;color:#293f78">📘 راهنمای آکادمی</h2>
-  <div style="display:grid;gap:12px">
-   <div style="display:flex;gap:12px;align-items:flex-start;padding:15px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#f1f7ff,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#dceaff;color:#2454a0;font-weight:900">۱</span><p style="margin:4px 0;line-height:2">کد اختصاصی خود را در بخش ورود دانش‌آموز وارد کنید.</p></div>
-   <div style="display:flex;gap:12px;align-items:flex-start;padding:15px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#effbf5,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#d9f4e5;color:#28734b;font-weight:900">۲</span><p style="margin:4px 0;line-height:2">در آزمون‌های فعال شرکت کن.</p></div>
-   <div style="display:flex;gap:12px;align-items:flex-start;padding:15px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#fff8ed,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#ffedcf;color:#9a6418;font-weight:900">۳</span><p style="margin:4px 0;line-height:2">کد را از سرپرست بگیر.</p></div>
+  <h2 style="margin:0 0 8px;text-align:center;color:#293f78">📘 راهنمای عضویت و ورود به آکادمی</h2>
+  <p style="text-align:center;margin:0 0 16px;color:#64748b;line-height:1.9">برای ورود به دنیای یادگیری و مسابقه، مراحل زیر را دنبال کن.</p>
+  <div style="display:grid;gap:10px">
+   <div style="display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#f1f7ff,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#dceaff;color:#2454a0;font-weight:900">۱</span><p style="margin:4px 0;line-height:2"><b>کد اختصاصی:</b> کد اختصاصی هر دانش‌آموز، همان کد ملی اوست.</p></div>
+   <div style="display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#effbf5,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#d9f4e5;color:#28734b;font-weight:900">۲</span><p style="margin:4px 0;line-height:2"><b>عضویت دانش‌آموز جدید:</b> اگر تاکنون عضو آکادمی نشده‌ای، از بخش «عضویت» فرم درخواست را تکمیل و ارسال کن.</p></div>
+   <div style="display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#fff8ed,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#ffedcf;color:#9a6418;font-weight:900">۳</span><p style="margin:4px 0;line-height:2"><b>تأیید مدیر:</b> پس از ثبت درخواست، منتظر بررسی و تأیید مدیر آکادمی بمان. تا پیش از تأیید، ورود به حساب دانش‌آموزی فعال نمی‌شود.</p></div>
+   <div style="display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#f5f1ff,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#e9ddff;color:#6840a5;font-weight:900">۴</span><p style="margin:4px 0;line-height:2"><b>ورود پس از تأیید:</b> پس از تأیید عضویت، به صفحه ورود برگرد و کد ملی خود را در قسمت «کد اختصاصی» وارد کن.</p></div>
+   <div style="display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#fff4f1,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#ffe0d8;color:#a34b35;font-weight:900">۵</span><p style="margin:4px 0;line-height:2"><b>شروع فعالیت:</b> پس از ورود موفق، می‌توانی درس‌ها را انتخاب کنی، در آزمون‌ها شرکت کنی و از امکانات آکادمی استفاده کنی.</p></div>
+   <div style="display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d9e5fb;border-radius:16px;background:linear-gradient(120deg,#f4fbff,#fff)"><span style="display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#d9f1fb;color:#246783;font-weight:900">۶</span><p style="margin:4px 0;line-height:2"><b>اعضای قبلی:</b> اگر قبلاً عضویتت تأیید شده است، نیازی به ثبت درخواست دوباره نداری؛ مستقیماً با کد ملی خود وارد شو.</p></div>
   </div>
+  <div style="margin-top:13px;padding:12px 14px;border-radius:13px;background:#fff8e8;border:1px solid #f1dfb5;color:#79551b;line-height:1.9"><b>نکته امنیتی:</b> کد ملی خود را فقط در صفحه رسمی ورود آکادمی وارد کن و آن را در اختیار دیگران قرار نده.</div>
  </div>`);
 };
 
