@@ -506,8 +506,63 @@ body.exam-page-active{overflow:hidden!important}
 @media(max-width:600px){#examPanel.academy-pairs-integrated{padding:8px!important}#examPanel.academy-pairs-integrated>.exam-topbar{padding:9px!important}#examPanel.academy-pairs-integrated>#examBody{padding:10px!important}}
 </style>
 
+
+<style id="academy-mobile-four-nav-fix-v1">
+@media (max-width: 600px) {
+  header.top { flex-wrap: wrap; }
+  header.top > .nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    min-width: 0;
+    gap: 4px;
+    justify-content: space-between;
+  }
+  header.top > .nav > button {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+    padding: 9px 3px;
+    font-size: clamp(9px, 2.65vw, 13px);
+    line-height: 1.25;
+    border-radius: 10px;
+  }
+}
+</style>
+
+<style id="academy-membership-kids-design-v2">
+/* Membership: colorful, friendly, child-oriented visual treatment */
+.am-overlay{background:radial-gradient(circle at 12% 12%,#ffe28d88 0 8%,transparent 23%),radial-gradient(circle at 88% 18%,#8ee8ff66 0 10%,transparent 26%),#26345bdc;backdrop-filter:blur(7px);padding:clamp(8px,2vw,22px)}
+.am-dialog{width:min(760px,100%);max-height:94dvh;overflow:auto;position:relative;border:5px solid #fff;border-radius:30px;padding:clamp(17px,3vw,30px);background:linear-gradient(150deg,#fffdf3 0%,#f2fbff 48%,#fff1f7 100%);box-shadow:0 25px 80px #111d48aa;isolation:isolate}
+.am-dialog:before{content:'⭐  ✨  🌈';display:block;text-align:center;font-size:clamp(24px,5vw,38px);letter-spacing:8px;margin:0 36px 8px 0;filter:drop-shadow(0 3px 2px #f4c45b55)}
+.am-dialog:after{content:'🎈';position:absolute;top:13px;left:18px;font-size:32px;z-index:-1;opacity:.8}
+.am-dialog h2{display:table;margin:0 auto 8px;padding:9px 24px;border-radius:22px;color:#fff;background:linear-gradient(100deg,#ff8caf,#9b83f6,#55c9ee);box-shadow:0 7px 0 #dce6ff;font-size:clamp(21px,4vw,29px);text-align:center}
+.am-dialog>p{text-align:center;font-weight:700;color:#59698e;margin:17px 0 20px}
+.am-close{width:40px;height:40px;left:12px;top:12px;background:#fff;border:2px solid #ffd5e3;color:#e45d88;font-weight:900;box-shadow:0 4px 12px #e45d8822;z-index:2}
+.am-grid{gap:13px}
+.am-grid label{padding:11px 12px 9px;border:2px solid #e2eaff;border-radius:17px;background:#ffffffd9;color:#394b79;box-shadow:0 5px 12px #6479a313;transition:border-color .18s,transform .18s}
+.am-grid label:nth-child(4n+1){border-color:#ffd4e2}.am-grid label:nth-child(4n+2){border-color:#c9eaff}.am-grid label:nth-child(4n+3){border-color:#d8d0ff}.am-grid label:nth-child(4n){border-color:#c8f0dc}
+.am-grid label:focus-within{border-color:#8e8af4;transform:translateY(-2px);box-shadow:0 0 0 4px #9b83f626}
+.am-grid input,.am-grid select,.am-track input{border:2px solid #e2e8f7;border-radius:12px;padding:12px 13px;background:#fbfdff;color:#28385f;outline:none;min-height:46px}
+.am-grid input:focus,.am-grid select:focus,.am-track input:focus{border-color:#6bbfe9;box-shadow:0 0 0 3px #78d5f533}
+.am-grid input::placeholder,.am-track input::placeholder{color:#a2acc2}
+.am-grid small{font-size:11px;font-weight:700;min-height:16px}
+#amStatus{border-radius:14px;padding:9px 12px;text-align:center;font-weight:800;color:#76551a;background:#fff5d8}
+#amSubmit{display:block;width:100%;min-height:52px;border:3px solid #fff;border-radius:17px;background:linear-gradient(100deg,#57d3a1,#54c7ed 55%,#9b83f6);color:#fff;font-size:16px;font-weight:900;box-shadow:0 7px 0 #d5def6,0 10px 18px #5368a522;text-shadow:0 1px 2px #26345b44;transition:transform .15s,filter .15s}
+#amSubmit:hover{filter:saturate(1.15);transform:translateY(-2px)}#amSubmit:active{transform:translateY(2px);box-shadow:0 3px 0 #d5def6}#amSubmit:disabled{opacity:.65;filter:grayscale(.2)}
+.am-track{margin-top:23px;padding:17px;border:2px dashed #b8c8f4;border-radius:20px;background:linear-gradient(120deg,#f0f8ff,#fff5fa)}
+.am-track h3{margin:0 0 4px;color:#6855b5}.am-track p{margin:6px 0 12px;font-size:13px}.am-track button{border-radius:12px;background:linear-gradient(110deg,#ffe18a,#ffb4c9);font-weight:900;padding:11px 17px;color:#57436b}
+#amTrackResult{white-space:pre-line;background:#fff;border-radius:12px;padding:9px;color:#40547b}
+@media(max-width:600px){.am-overlay{align-items:flex-start;padding:7px}.am-dialog{margin:auto 0;max-height:96dvh;border-width:3px;border-radius:23px;padding:15px 12px}.am-dialog:before{margin-bottom:6px;letter-spacing:3px}.am-dialog h2{font-size:21px;padding:8px 18px}.am-grid{grid-template-columns:1fr;gap:9px}.am-full{grid-column:auto}.am-grid label{padding:9px 10px}.am-grid input,.am-grid select{min-height:43px;padding:10px}.am-track input{width:100%;margin:0 0 8px}.am-track button{width:100%}#amSubmit{font-size:15px}}
+/* آواتار ذخیره‌شدهٔ هر دانش‌آموز کنار نام او در رتبه‌بندی */
+.leaderboard-name-wrap{display:flex;align-items:center;justify-content:flex-start;gap:8px;min-width:0;text-align:right}
+.leaderboard-avatar{width:36px;height:36px;min-width:36px;display:inline-grid;place-items:center;border:2px solid #fff;border-radius:50%;font-size:21px;line-height:1;background:linear-gradient(145deg,#ffe28b,#ffb9d0 55%,#a8e6ff);box-shadow:0 2px 7px #394c7b28}
+.grade-leaderboard-table td:nth-child(2){text-align:right}
+@media(max-width:700px){.leaderboard-avatar{width:31px;height:31px;min-width:31px;font-size:18px}.leaderboard-name-wrap{gap:6px}}
+@media(prefers-reduced-motion:no-preference){.am-dialog{animation:am-pop-v2 .28s ease-out}@keyframes am-pop-v2{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}}
+</style>
 </head><body><main class="wrap">
-<header class="top"><div class="brand"><div class="logo">🎓</div><div>آکادمی مسابقات و دانایی<small style="display:block;font-size:10px;color:#8792ac;letter-spacing:2px">GAME • LEARN • GROW</small></div></div><nav class="nav"><button onclick="openInfo('teacher')">👨‍🏫 پنل معلم</button><button onclick="openInfo('guide')">📘 راهنما</button><button onclick="openInfo('about')">⭐ درباره ما</button></nav></header>
+<header class="top"><div class="brand"><div class="logo">🎓</div><div>آکادمی مسابقات و دانایی<small style="display:block;font-size:10px;color:#8792ac;letter-spacing:2px">GAME • LEARN • GROW</small></div></div><nav class="nav"><button type="button" onclick="academyOpenMembershipV1()">📝 عضویت</button><button onclick="openInfo('teacher')">👨‍🏫 پنل معلم</button><button onclick="openInfo('guide')">📘 راهنما</button><button onclick="openInfo('about')">⭐ درباره ما</button></nav></header>
 
 <section class="hero"><h1>به دنیای دانایی خوش آمدی!</h1><p><strong>(مخصوص پایه اول تا ششم)</strong></p><p>کدت را وارد کن، درس‌ها را کشف کن و با حل چالش‌ها امتیاز جمع کن.</p><div class="mascot">🚀 🧩 🌈 🏆</div></section>
 <section id="studentLoginBox" class="loginbox"><h2>🔐 ورود دانش‌آموز</h2><div class="loginrow"><input id="studentCode" type="text" inputmode="numeric" pattern="[0-9۰-۹٠-٩]*" maxlength="10" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="filterStudentCode(this)" onkeydown="handleStudentCodeKey(event)" placeholder="کد اختصاصی دانش‌آموز"><button id="studentLoginButton" class="btn" onclick="studentLogin()">ورود به آکادمی</button></div><p id="studentLoginStatus" class="hint" aria-live="polite"></p><p class="hint">برای دیدن درس‌ها و شرکت در مسابقه، ابتدا کد اختصاصی خودت را وارد کن.</p></section>
@@ -554,7 +609,20 @@ body.exam-page-active{overflow:hidden!important}
  <button class="soft" type="button" onclick="academyLoadStaffMessagesV1()">به‌روزرسانی پیام‌ها</button>
  <p id="staffMessagesStatusV1" class="muted" aria-live="polite"></p>
  <div id="staffMessagesListV1"><div class="empty">برای دریافت پیام‌ها، وارد حساب معلم یا مدیر شوید.</div></div>
-</section><div id="teacherAdmin" style="display:none"><section class="builder-box" style="margin:12px 0"><h3>🔐 تغییر کد مدیریت</h3><p class="muted">برای تغییر کد ورود مدیر اصلی، کد فعلی را وارد کنید و کد جدید را دو بار بنویسید.</p><div class="admin-grid"><label class="field">کد فعلی مدیریت<input id="adminCurrentCode" type="password" inputmode="numeric" autocomplete="current-password" placeholder="کد فعلی"></label><label class="field">کد جدید مدیریت<input id="adminNewCode" type="password" inputmode="numeric" autocomplete="new-password" placeholder="حداقل ۴ رقم"></label><label class="field">تکرار کد جدید<input id="adminConfirmCode" type="password" inputmode="numeric" autocomplete="new-password" placeholder="تکرار کد جدید"></label></div><button class="btn blue" id="changeAdminCodeButton" onclick="changeAdminCodeV42()">ذخیره کد جدید</button><p id="changeAdminCodeStatus" class="muted" aria-live="polite"></p></section><h3>افزودن معلم و تعیین دسترسی</h3><div class="admin-grid"><label class="field">نام و نام خانوادگی معلم<input id="newTeacherName" placeholder="نام معلم"></label><label class="field">کد ورود معلم<input id="newTeacherCode" type="password" inputmode="numeric" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="کد ورود"></label><div class="field" style="grid-column:1/-1"><b>پایه‌ها و درس‌های مجاز معلم</b><div id="teacherPermissionGrid" class="admin-grid"></div></div></div><button class="btn blue" onclick="createTeacher()">ثبت معلم و دسترسی</button><section class="builder-box" style="margin-top:18px"><h3>مدیریت معلمان دارای دسترسی</h3><p class="muted">فهرست معلمان ثبت‌شده، پایه‌ها و درس‌های مجاز و ابزار ویرایش دسترسی‌ها.</p><div id="teacherManagementTable" class="muted">در حال دریافت فهرست معلمان...</div></section><h3>افزودن دانش‌آموز</h3><div class="admin-grid"><label class="field">نام<input id="newStudentFirst" placeholder="نام"></label><label class="field">نام خانوادگی<input id="newStudentLast" placeholder="نام خانوادگی"></label><label class="field">کد ملی<input id="newStudentNationalId" inputmode="numeric" placeholder="۱۰ رقم کد ملی"></label><label class="field">پایه<select id="newStudentGrade"><option value="1">اول</option><option value="2">دوم</option><option value="3">سوم</option><option value="4">چهارم</option><option value="5">پنجم</option><option value="6">ششم</option></select></label></div><button class="btn pink" onclick="createStudent()">ثبت دانش‌آموز</button><h3>ورود گروهی دانش‌آموزان از Excel</h3><div class="admin-grid"><label class="field">انتخاب فایل Excel<input id="studentExcel" type="file" accept=".xlsx,.xls"></label></div><button class="btn blue" onclick="importStudentsExcel()">شروع ورود گروهی</button><div id="adminLists"></div>
+</section><div id="teacherAdmin" style="display:none">
+<section id="academyNewMembersAdminV1" class="builder-box am-admin">
+ <div class="am-admin-head"><div><h2>مدیریت اعضای جدید</h2><p>تمام ابزارهای عضویت در همین بخش قرار دارند.</p></div><b id="amPendingBadge">در انتظار: —</b></div>
+ <div class="am-tabs">
+  <button class="active" onclick="academyMembershipAdminTabV1('requests',this)">درخواست‌های عضویت</button>
+  <button onclick="academyMembershipAdminTabV1('approved',this)">اعضای تأییدشده</button>
+  <button onclick="academyMembershipAdminTabV1('rejected',this)">درخواست‌های ردشده</button>
+  <button onclick="academyMembershipAdminTabV1('blocked',this)">مدیریت دسترسی‌های مسدودشده</button>
+  <button onclick="academyMembershipAdminTabV1('events',this)">گزارش فعالیت‌ها</button>
+ </div>
+ <p id="amAdminStatus" role="status">برای مشاهده اطلاعات، یک زیر‌بخش را انتخاب کنید.</p>
+ <div id="amAdminContent"></div>
+</section>
+<section class="builder-box" style="margin:12px 0"><h3>🔐 تغییر کد مدیریت</h3><p class="muted">برای تغییر کد ورود مدیر اصلی، کد فعلی را وارد کنید و کد جدید را دو بار بنویسید.</p><div class="admin-grid"><label class="field">کد فعلی مدیریت<input id="adminCurrentCode" type="password" inputmode="numeric" autocomplete="current-password" placeholder="کد فعلی"></label><label class="field">کد جدید مدیریت<input id="adminNewCode" type="password" inputmode="numeric" autocomplete="new-password" placeholder="حداقل ۴ رقم"></label><label class="field">تکرار کد جدید<input id="adminConfirmCode" type="password" inputmode="numeric" autocomplete="new-password" placeholder="تکرار کد جدید"></label></div><button class="btn blue" id="changeAdminCodeButton" onclick="changeAdminCodeV42()">ذخیره کد جدید</button><p id="changeAdminCodeStatus" class="muted" aria-live="polite"></p></section><h3>افزودن معلم و تعیین دسترسی</h3><div class="admin-grid"><label class="field">نام و نام خانوادگی معلم<input id="newTeacherName" placeholder="نام معلم"></label><label class="field">کد ورود معلم<input id="newTeacherCode" type="password" inputmode="numeric" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="کد ورود"></label><div class="field" style="grid-column:1/-1"><b>پایه‌ها و درس‌های مجاز معلم</b><div id="teacherPermissionGrid" class="admin-grid"></div></div></div><button class="btn blue" onclick="createTeacher()">ثبت معلم و دسترسی</button><section class="builder-box" style="margin-top:18px"><h3>مدیریت معلمان دارای دسترسی</h3><p class="muted">فهرست معلمان ثبت‌شده، پایه‌ها و درس‌های مجاز و ابزار ویرایش دسترسی‌ها.</p><div id="teacherManagementTable" class="muted">در حال دریافت فهرست معلمان...</div></section><h3>افزودن دانش‌آموز</h3><div class="admin-grid"><label class="field">نام<input id="newStudentFirst" placeholder="نام"></label><label class="field">نام خانوادگی<input id="newStudentLast" placeholder="نام خانوادگی"></label><label class="field">کد ملی<input id="newStudentNationalId" inputmode="numeric" placeholder="۱۰ رقم کد ملی"></label><label class="field">پایه<select id="newStudentGrade"><option value="1">اول</option><option value="2">دوم</option><option value="3">سوم</option><option value="4">چهارم</option><option value="5">پنجم</option><option value="6">ششم</option></select></label></div><button class="btn pink" onclick="createStudent()">ثبت دانش‌آموز</button><h3>ورود گروهی دانش‌آموزان از Excel</h3><div class="admin-grid"><label class="field">انتخاب فایل Excel<input id="studentExcel" type="file" accept=".xlsx,.xls"></label></div><button class="btn blue" onclick="importStudentsExcel()">شروع ورود گروهی</button><div id="adminLists"></div>
 <section class="builder-box" id="academyBackupV62" style="margin-top:18px"><h3>پشتیبان‌گیری و خروجی اطلاعات</h3><p class="muted">خروجی JSON از داده‌های اصلی آکادمی شامل آزمون‌ها، سؤال‌ها، دانش‌آموزان، معلمان، سوابق و مجوزها. کدهای ورود خام در دسترس نیستند؛ فقط هش رمزنگاری‌شدهٔ کدها در خروجی قرار می‌گیرد. این خروجی جایگزین نسخهٔ کامل پایگاه داده و تنظیمات Supabase نیست.</p><button class="btn blue" type="button" id="academyBackupButtonV62" onclick="exportAcademyBackupV62()">دریافت نسخهٔ پشتیبان JSON</button><p id="academyBackupStatusV62" class="muted" aria-live="polite"></p></section>
 <section id="studentManagementPanelV52" class="builder-box" style="margin-top:18px">
  <h3>مدیریت دانش‌آموزان ثبت‌شده</h3>
@@ -568,6 +636,33 @@ body.exam-page-active{overflow:hidden!important}
 <div id="teacherReports"><section class="builder-box" id="academyWheelTeacherReportV1" style="margin:16px 0;background:linear-gradient(135deg,#fffdf1,#f1f8ff);border:1px solid #dce7f7;border-radius:18px;padding:16px"><h3>🎡 گزارش چرخ شانس دانش‌آموزان</h3><p class="muted">فهرست شرکت‌کنندگان؛ امتیاز نهایی هر نفر پس از کسر هزینه چرخش‌های اضافی محاسبه می‌شود.</p><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label>نمایش گزارش <select id="academyWheelReportPeriodV1"><option value="week">هفته جاری</option><option value="all" selected>همه سوابق</option></select></label><button type="button" class="soft" onclick="loadAcademyWheelTeacherReportV1()">به‌روزرسانی گزارش</button></div><p id="academyWheelTeacherReportStatusV1" class="muted" role="status" aria-live="polite">برای مشاهده گزارش وارد پنل معلم شوید.</p><div id="academyWheelTeacherReportTableV1"></div></section></div></section>
 <section id="examPanel" class="panel exam-page"><div class="exam-topbar"><div class="panelhead"><h2 id="examHeading" tabindex="-1">مسابقه آموزشی</h2><button class="soft" type="button" onclick="leaveExam()">بازگشت به انتخاب درس‌ها</button></div><div id="examMeta" class="notice exam-timer-bar" role="status" aria-live="polite"></div></div><div id="examBody"></div><div class="actions" id="examActions"></div></section>
 <div class="footer">آکادمی مسابقات و دانایی · یادگیری با شادی، پیشرفت با تلاش<br><span dir="ltr">powered by sarabandi</span></div></main>
+
+<div id="academyMembershipModalV1" class="am-overlay" style="display:none" role="dialog" aria-modal="true">
+ <div class="am-dialog">
+  <button class="am-close" onclick="academyCloseMembershipV1()" type="button">×</button>
+  <h2>عضویت در آکادمی</h2>
+  <p>فرم را کامل کنید. درخواست پس از بررسی مدیر نهایی می‌شود.</p>
+  <form id="amForm" onsubmit="academySubmitMembershipV1(event)" novalidate>
+   <div class="am-grid">
+    <label>نام<input id="amFirst" maxlength="80" lang="fa" autocomplete="given-name" required placeholder="نام به فارسی"><small id="amFirstErr"></small></label>
+    <label>نام خانوادگی<input id="amLast" maxlength="100" lang="fa" autocomplete="family-name" required placeholder="نام خانوادگی به فارسی"><small id="amLastErr"></small></label>
+    <label>پایه تحصیلی<select id="amGrade" required><option value="">انتخاب پایه</option><option value="1">اول</option><option value="2">دوم</option><option value="3">سوم</option><option value="4">چهارم</option><option value="5">پنجم</option><option value="6">ششم</option></select><small id="amGradeErr"></small></label>
+    <label>کد ملی<input id="amNational" type="text" inputmode="numeric" maxlength="10" autocomplete="off" required placeholder="۱۰ رقم"><small id="amNationalErr"></small></label>
+    <label>استان<input id="amProvince" maxlength="60" required placeholder="استان"><small id="amProvinceErr"></small></label>
+    <label>شهر<input id="amCity" maxlength="60" required placeholder="شهر"><small id="amCityErr"></small></label>
+    <label class="am-full">شماره تماس ولی (اختیاری)<input id="amPhone" type="text" inputmode="numeric" maxlength="11" autocomplete="tel" placeholder="در صورت تمایل وارد کنید"><small id="amPhoneErr"></small></label>
+   </div>
+   <p id="amStatus" role="status" aria-live="polite"></p>
+   <button id="amSubmit" class="btn blue" type="submit">ثبت درخواست عضویت</button>
+  </form>
+  <div class="am-track">
+   <h3>پیگیری درخواست</h3><p>کد پیگیری محرمانه را وارد کنید تا وضعیت و در صورت ردشدن، دلیل آن نمایش داده شود.</p>
+   <input id="amTracking" placeholder="کد پیگیری"><button type="button" class="soft" onclick="academyTrackMembershipV1()">پیگیری</button>
+   <p id="amTrackResult" role="status" aria-live="polite"></p>
+  </div>
+ </div>
+</div>
+
 <div id="modal" class="modal"><div class="dialog"><button class="close" onclick="closeModal()">✕</button><div id="modalContent"></div></div></div><div id="toast" class="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -758,7 +853,7 @@ async function teacherLogin(){
   closeModal();document.getElementById('teacherPanel').classList.add('show');
   if(typeof window.academyUpdateOnlinePresenceV1==='function')window.academyUpdateOnlinePresenceV1();
   if(typeof window.academyStartTeacherOnlineRosterV1==='function')window.academyStartTeacherOnlineRosterV1();
-  const adminRoot=document.getElementById('teacherAdmin');if(adminRoot){adminRoot.style.display=teacher.is_admin?'block':'none';if(teacher.is_admin){adminRoot.style.visibility='hidden';/* ساخت سایدبار V84 پس از mountColumns و در wrapper نهایی ورود انجام می‌شود؛ اجرای زودهنگام باعث snapshot ناقص و پیام نبود پنل امتیاز دستی می‌شد. */adminRoot.style.visibility='';}}
+  const adminRoot=document.getElementById('teacherAdmin');if(adminRoot){adminRoot.style.display=teacher.is_admin?'block':'none';if(teacher.is_admin){adminRoot.style.visibility='hidden';/* ساخت سایدبار V84 پس از mountColumns و در wrapper نهایی ورود انجام می‌شود؛ اجرای زودهنگام باعث snapshot ناقص و پیام نبود پنل امتیاز دستی می‌شد. */adminRoot.style.visibility='';}}if(teacher.is_admin&&typeof academyLoadMembershipAdminV1==='function')setTimeout(academyLoadMembershipAdminV1,0);
   const scope=teacher.is_admin?'مدیر اصلی: دسترسی کامل به تمام پایه‌ها و همه درس‌ها.':(teacher.permissions||[]).map(p=>'پایه '+fa(p.grade)+'، '+p.subject).join(' | ');
   document.getElementById('teacherScope').textContent=scope||(teacher.is_admin?'دسترسی کامل مدیر فعال است.':'برای این حساب هنوز دسترسی آموزشی تعریف نشده است.');
   applyGradeVisibility();document.getElementById('teacherPanel').scrollIntoView({behavior:'smooth'});setTimeout(()=>Promise.resolve(loadTeacherReports()).catch(e=>console.warn('دریافت گزارش آزمون‌ها ناموفق بود:',e)),0);if(typeof academyInitStaffMessagesV1==='function')setTimeout(()=>Promise.resolve(academyInitStaffMessagesV1()).catch(e=>console.warn('آماده‌سازی پیام‌ها ناموفق بود:',e)),0);
@@ -1379,12 +1474,21 @@ async function loadAcademyLeaderboard(){
  try{
   const {data,error}=await db.rpc('get_academy_top_students_v2');if(error)throw error;
   const rows=Array.isArray(data)?data:[];
+  // همان مقدار ذخیره‌شده در پنل شخصی؛ دریافت از RPC امن چون سیاست RLS
+  // معمولاً اجازهٔ خواندن تنظیمات خصوصیِ سایر دانش‌آموزان را نمی‌دهد.
+  const avatarByStudentId={};
+  const {data:avatarRows,error:avatarError}=await db.rpc('get_academy_leaderboard_avatars_v1');
+  if(avatarError)throw new Error('دریافت آواتارهای انتخاب‌شده ممکن نشد. تابع پایگاه داده get_academy_leaderboard_avatars_v1 باید نصب شود. '+avatarError.message);
+  (Array.isArray(avatarRows)?avatarRows:[]).forEach(p=>{
+   const id=String(p.student_id||'').trim(),idx=Number(p.avatar_index);
+   if(id&&Number.isInteger(idx)&&idx>=0&&idx<10)avatarByStudentId[id]=idx;
+  });
   const gradeNames={1:'اول',2:'دوم',3:'سوم',4:'چهارم',5:'پنجم',6:'ششم'};
   const palettes={1:'#e8f7ff',2:'#fff1e8',3:'#f0edff',4:'#e9fbf2',5:'#fff8df',6:'#fceefa'};
   root.className='leaderboard-loading';
   root.innerHTML=`<div class="grade-leaderboard-grid">${[5,4,1,2,3,6].map(g=>{
    const list=rows.filter(r=>Number(r.grade)===g).sort((a,b)=>Number(a.rank||999999)-Number(b.rank||999999)).slice(0,10);
-   const content=list.length?`<div class="grade-leaderboard-scroll" tabindex="0" aria-label="رتبه‌بندی ده دانش‌آموز برتر پایه ${gradeNames[g]}"><table class="grade-leaderboard-table"><thead><tr><th>رتبه</th><th>نام و نام خانوادگی دانش‌آموز</th><th>مجموع امتیاز</th></tr></thead><tbody>${list.map((r,i)=>`<tr><td><span class="rank-medal">${i===0?'🥇':i===1?'🥈':i===2?'🥉':fa(i+1)}</span></td><td><span class="leaderboard-student-name">${escapeHtml(r.student_name||'—')}</span></td><td><b>${fa(Number(r.total_score||0))}</b></td></tr>`).join('')}</tbody></table></div>`:'';
+   const content=list.length?`<div class="grade-leaderboard-scroll" tabindex="0" aria-label="رتبه‌بندی ده دانش‌آموز برتر پایه ${gradeNames[g]}"><table class="grade-leaderboard-table"><thead><tr><th>رتبه</th><th>نام و نام خانوادگی دانش‌آموز</th><th>مجموع امتیاز</th></tr></thead><tbody>${list.map((r,i)=>{const avatarIndex=avatarByStudentId[String(r.student_id||'').trim()];const face=typeof window.academyGetAvatarEmojiV124==='function'&&Number.isInteger(avatarIndex)?window.academyGetAvatarEmojiV124(avatarIndex):'👤';return `<tr><td><span class="rank-medal">${i===0?'🥇':i===1?'🥈':i===2?'🥉':fa(i+1)}</span></td><td><span class="leaderboard-name-wrap"><span class="leaderboard-avatar" role="img" aria-label="${Number.isInteger(avatarIndex)?'آواتار انتخاب‌شدهٔ دانش‌آموز':'آواتار انتخاب نشده'}">${face}</span><span class="leaderboard-student-name">${escapeHtml(r.student_name||'—')}</span></span></td><td><b>${fa(Number(r.total_score||0))}</b></td></tr>`}).join('')}</tbody></table></div>`:'';
    return `<section class="grade-leaderboard-card${list.length?'':' grade-leaderboard-card-empty'}" style="--grade-tint:${palettes[g]}"><h3>🏅 پایه ${gradeNames[g]}</h3>${content}</section>`;
   }).join('')}</div>`;
  }catch(e){root.innerHTML='<div class="notice">دریافت رتبه‌بندی ناموفق بود: '+escapeHtml(e.message)+'</div>';}
@@ -4688,6 +4792,7 @@ const gifts=["دسته گلی از آسمان", "تنها او", "بانویی �
   {emoji:'🧑‍🔬',name:'دانشمند'},{emoji:'👩‍🚀',name:'فضانورد'},{emoji:'🦸',name:'قهرمان'},{emoji:'🧙',name:'جادوگر'},{emoji:'🧑‍🎨',name:'هنرمند'},
   {emoji:'🧑‍🏫',name:'آموزگار'},{emoji:'🥷',name:'نینجا'},{emoji:'🧝',name:'ماجراجو'},{emoji:'🤖',name:'ربات'},{emoji:'🧑‍🚒',name:'آتش‌نشان'}
  ];
+ window.academyGetAvatarEmojiV124=function(index){const n=Number(index);return Number.isInteger(n)&&n>=0&&n<AVATARS.length?AVATARS[n].emoji:AVATARS[0].emoji;};
  const KEY_PREFIX='academy_student_avatar_v124_';
  const PREFS_TABLE='student_preferences';
  let currentAvatar=0, memoryAvatarByStudent={};
@@ -5942,7 +6047,12 @@ body.academy-student-instant-view #academyStudentAdventureV124{
  // قالب جورچین برای فارسی پنجم: درس سوم الگوی مرجع است و درس دوم نیز
  // از همان مسیر اجرا می‌شود. آزمون‌های بعدی با عنوان «جورچین» نیز خودکار
  // همین موتور را می‌گیرند؛ تعداد و بارم از سؤال‌های واقعی همان آزمون می‌آید.
- function isWordPuzzleExam(ex){
+ function hasMatchingPairs(rows){
+   return Array.isArray(rows)&&rows.some(q=>String(q?.question_type||'').trim().toLowerCase()==='matching_pairs');
+ }
+ function isWordPuzzleExam(ex,rows){
+   // نوع واقعی سؤال بر تشخیص مبتنی بر پایه/شماره درس اولویت دارد.
+   if(hasMatchingPairs(rows))return false;
    let grade=Number(ex?.grade);
    if(!Number.isFinite(grade)&&typeof gradeNumber==='function')grade=Number(gradeNumber(ex?.grade));
    let subject=String(ex?.subject||'').trim();
@@ -6010,7 +6120,10 @@ body.academy-student-instant-view #academyStudentAdventureV124{
      document.querySelector('#v22QuestionEditor .builder-box h4')?.scrollIntoView({behavior:'smooth',block:'start'});return;
    }
    const ex=builderExamV22;
-   const isTarget=isWordPuzzleExam(ex);
+   // سؤال جفت‌کلمات باید به ویرایشگر اصلی خودش برسد، حتی اگر آزمون
+   // از نظر پایه و شماره درس در گروه قالب‌های قدیمی جورچین باشد.
+   if(String(q.question_type||'').trim().toLowerCase()==='matching_pairs'||hasMatchingPairs(all))return baseEdit.apply(this,arguments);
+   const isTarget=isWordPuzzleExam(ex,all);
    if(isTarget){
      const children=[...all].sort((a,b)=>Number(a.position)-Number(b.position));
      const resolveAnswer=x=>{
@@ -6071,7 +6184,10 @@ body.academy-student-instant-view #academyStudentAdventureV124{
  window.renderQuestionEditorV22=function(qs){
    baseListRender.apply(this,arguments);
    const list=document.getElementById('v22QuestionList');if(!list)return;
-   const rows=Array.isArray(qs)?qs:[];const target=isWordPuzzleExam(builderExamV22);
+   const rows=Array.isArray(qs)?qs:[];
+   // وجود جفت‌کلمات یعنی نوع واقعی سؤال‌ها ملاک است؛ خروجی فهرست عادی حفظ شود.
+   if(hasMatchingPairs(rows))return;
+   const target=isWordPuzzleExam(builderExamV22,rows);
    // در آزمون هدف، حتی رکوردهای قدیمیِ چهارگزینه‌ای در پنل معلم به‌صورت یک جورچین نشان داده می‌شوند.
    // با ورود به ویرایش و ذخیره، نوع تمام واژه‌ها نیز در پایگاه داده به word_building تبدیل می‌شود.
    if(target&&rows.length&&!rows.some(x=>groupOf(x))){
@@ -6306,6 +6422,78 @@ body.academy-student-instant-view #academyStudentAdventureV124{
  wrapBusy('setExamActiveV37','در حال ذخیره...','ذخیره وضعیت آزمون');
 })();
 </script>
+
+<style>
+.am-overlay{position:fixed;inset:0;z-index:10050;background:#0b183bbd;display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
+.am-dialog{position:relative;background:white;color:#20304a;width:min(720px,100%);max-height:94vh;overflow:auto;border-radius:20px;padding:22px;box-shadow:0 20px 60px #0005}
+.am-dialog h2{color:#174c8c;margin:0 0 8px}.am-dialog p{line-height:1.8;color:#64748b}
+.am-close{position:absolute;left:12px;top:10px;border:0;border-radius:50%;width:38px;height:38px;font-size:24px;background:#eef3fb}
+.am-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.am-grid label{display:flex;flex-direction:column;gap:5px;font-weight:800}
+.am-grid input,.am-grid select,.am-track input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:11px;font:inherit}
+.am-grid small{color:#c62828;min-height:16px}.am-full{grid-column:1/-1}
+#amSubmit{width:100%;margin:8px 0}.am-track{border-top:1px solid #e2e8f0;margin-top:18px;padding-top:12px}
+.am-track input{width:min(65%,380px);margin-left:6px}.am-admin{margin:14px 0;background:#f8fbff;border:2px solid #c8d9f4}
+.am-admin-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.am-admin-head h2{margin:0}.am-admin-head p{margin:5px 0;color:#64748b}
+.am-admin-head b{background:#fff0c8;color:#805700;border-radius:20px;padding:8px 12px}
+.am-tabs{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}.am-tabs button{border:1px solid #ccd6e5;background:white;border-radius:10px;padding:9px 12px;font:inherit;font-weight:800}
+.am-tabs button.active{background:#1e5da8;color:white}.am-table-wrap{overflow:auto;background:white;border:1px solid #e2e8f0;border-radius:10px}
+.am-table{border-collapse:collapse;width:100%;min-width:680px;font-size:13px}.am-table th,.am-table td{padding:9px;border-bottom:1px solid #e7edf4;text-align:right}
+.am-table th{background:#f1f6fd}.am-table button{border:0;border-radius:8px;padding:7px 9px;margin:2px;font-weight:800}
+@media(max-width:600px){.am-grid{grid-template-columns:1fr}.am-full{grid-column:auto}.am-tabs{display:grid;grid-template-columns:1fr 1fr}.am-tabs button{font-size:12px;padding:8px 5px}.am-track input{width:100%;margin:0 0 8px}}
+</style>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ const digits=s=>String(s||'').replace(/[۰-۹٠-٩]/g,c=>String(c.charCodeAt(0)>=1776&&c.charCodeAt(0)<=1785?c.charCodeAt(0)-1776:c.charCodeAt(0)-1632)).replace(/[^0-9]/g,'');
+ const name=s=>String(s||'').normalize('NFC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').trim().replace(/\s+/g,' ');
+ const validName=s=>/^[\u0621-\u0628\u062A-\u063A\u0641-\u0642\u0644-\u0648\u067E\u0686\u0698\u06A9\u06AF\u06C0-\u06C3\u06CC\u200c ]+$/u.test(s);
+ const validId=s=>{if(!/^\d{10}$/.test(s)||/^(\d)\1{9}$/.test(s))return false;let sum=[...s.slice(0,9)].reduce((a,d,i)=>a+Number(d)*(10-i),0),r=sum%11;return Number(s[9])===(r<2?r:11-r)};
+ function browserId(){try{let v=localStorage.getItem('academy_membership_browser_id_v1');if(!v){v=crypto.randomUUID();localStorage.setItem('academy_membership_browser_id_v1',v)}return v}catch{return crypto.randomUUID()}}
+ const validateNationalField=()=>{const v=digits($('amNational').value).replace(/\s/g,'');$('amNational').value=v.slice(0,10);const err=$('amNationalErr');if(!v){err.textContent='';return}err.textContent=validId(v)?'':'کد ملی به درستی وارد نشده است.'};
+ $('amNational').addEventListener('input',validateNationalField);
+ const cleanNameField=id=>{const el=$(id);el.value=name(el.value).replace(/[^\u0621-\u0628\u062A-\u063A\u0641-\u0642\u0644-\u0648\u067E\u0686\u0698\u06A9\u06AF\u06C0-\u06C3\u06CC\u200c ]/gu,'').replace(/\s+/g,' ');const err=$(id+'Err');if(err)err.textContent=el.value&&!validName(el.value)?'فقط حروف فارسی مجاز است.':''};
+ ['amFirst','amLast'].forEach(id=>$(id).addEventListener('input',()=>cleanNameField(id)));
+ $('amPhone').addEventListener('input',()=>{$('amPhone').value=digits($('amPhone').value).slice(0,11);const v=$('amPhone').value;$('amPhoneErr').textContent=v&&!/^09\d{9}$/.test(v)?'در صورت ورود، شماره باید ۱۱ رقم و با ۰۹ آغاز شود.':''});
+ window.academyOpenMembershipV1=()=>{$('academyMembershipModalV1').style.display='flex';document.body.style.overflow='hidden'};
+ window.academyCloseMembershipV1=()=>{$('academyMembershipModalV1').style.display='none';document.body.style.overflow=''};
+ window.academySubmitMembershipV1=async e=>{
+  e.preventDefault();
+  const d={first_name:name($('amFirst').value),last_name:name($('amLast').value),grade:Number($('amGrade').value),national_id:digits($('amNational').value).replace(/\s/g,''),province:$('amProvince').value.trim(),city:$('amCity').value.trim(),guardian_phone:digits($('amPhone').value).replace(/\s/g,''),browser_id:browserId()};
+  const errors={amFirst:!d.first_name||!validName(d.first_name)?'فقط حروف فارسی و فاصله مجاز است.':'',amLast:!d.last_name||!validName(d.last_name)?'فقط حروف فارسی و فاصله مجاز است.':'',amGrade:!(d.grade>=1&&d.grade<=6)?'پایه را انتخاب کنید.':'',amNational:!validId(d.national_id)?'کد ملی به درستی وارد نشده است.':'',amProvince:!d.province?'استان را وارد کنید.':'',amCity:!d.city?'شهر را وارد کنید.':'',amPhone:d.guardian_phone&&!/^09\d{9}$/.test(d.guardian_phone)?'در صورت ورود، شماره باید ۱۱ رقم و با ۰۹ آغاز شود.':''};
+  Object.entries(errors).forEach(([id,msg])=>{const el=$(id+'Err');if(el)el.textContent=msg});
+  // کد ملی خالی در مرورگر متوقف می‌شود؛ اما کد ملیِ واردشده و نامعتبر
+  // باید به سرور برسد تا شمارنده امنیتی فقط در سمت سرور افزایش یابد.
+  const hasNationalId=!!d.national_id;
+  const blockingErrors=Object.entries(errors).some(([id,msg])=>msg && (id!=='amNational' || !hasNationalId));
+  if(blockingErrors){$('amStatus').textContent='لطفاً خطاهای فرم را اصلاح کنید.';return}
+  const b=$('amSubmit');b.disabled=true;$('amStatus').textContent='در حال بررسی اطلاعات...';
+  try{const {data,error}=await db.functions.invoke('membership-api',{body:{action:'submit_request',...d}});if(error){let m=error.message;try{const p=await error.context.clone().json();m=p.error||m}catch{}throw Error(m)}
+   if(!data?.ok)throw Error(data?.error||'ثبت انجام نشد.');
+   $('amForm').innerHTML='<p style="background:#e8f7ed;padding:14px;border-radius:10px;color:#176b3a">درخواست شما ثبت شد. پس از بررسی مدیر، نتیجه از طریق بخش عضویت قابل پیگیری است.</p><p><b>کد پیگیری محرمانه:</b><br><code style="font-size:18px;user-select:all">'+data.tracking_code+'</code><br>این کد را نگه دارید.</p>';
+  }catch(err){const message=err.message||'ثبت درخواست ناموفق بود.';$('amStatus').textContent=message;if(/کد ملی/.test(message))$('amNationalErr').textContent='کد ملی به درستی وارد نشده است.'}finally{b.disabled=false}
+ };
+ window.academyTrackMembershipV1=async()=>{const code=digits($('amTracking').value).trim();if(!code){$('amTrackResult').textContent='کد پیگیری را وارد کنید.';return}$('amTrackResult').textContent='در حال بررسی...';try{const {data,error}=await db.functions.invoke('membership-api',{body:{action:'track_request',tracking_code:code}});if(error){let m=error.message||'ارتباط با سرور ناموفق بود.';try{const p=await error.context.clone().json();m=p.error||m}catch{}throw Error(m)}if(!data?.ok)throw Error(data?.error||'درخواست پیدا نشد.');const r=data.request||data;const l={pending:'در انتظار بررسی مدیر',approved:'تأیید شده',rejected:'رد شده'};$('amTrackResult').textContent='وضعیت: '+(l[r.status]||'نامشخص')+(r.rejection_reason?'\nدلیل رد: '+r.rejection_reason:'')+(r.allow_reapply?'\nامکان ثبت درخواست مجدد فعال است.':'')}catch(e){$('amTrackResult').textContent=e.message||'کد پیگیری معتبر نیست.'}};
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ window.academyMembershipAdminTabV1=async(section,btn)=>{document.querySelectorAll('.am-tabs button').forEach(x=>x.classList.toggle('active',x===btn));$('amAdminStatus').textContent='در حال دریافت اطلاعات...';try{const data=await callFunction('membership-api',{action:'admin_list'});if(!data?.ok)throw Error(data?.error||'دریافت اطلاعات ناموفق بود.');const requests=Array.isArray(data.requests)?data.requests:[];const security=Array.isArray(data.security)?data.security:[];const events=Array.isArray(data.events)?data.events:[];$('amPendingBadge').textContent='در انتظار: '+requests.filter(r=>r.status==='pending').length;let rows=[];if(section==='requests')rows=requests.filter(r=>r.status==='pending');else if(section==='approved')rows=requests.filter(r=>r.status==='approved');else if(section==='rejected')rows=requests.filter(r=>r.status==='rejected');else if(section==='blocked')rows=security.filter(r=>!!r.blocked_at&&!r.unblocked_at);else if(section==='events')rows=events;$('amAdminContent').innerHTML=render(section,rows);$('amAdminStatus').textContent='اطلاعات دریافت شد.'}catch(e){$('amAdminStatus').textContent=e.message||'خطا در دریافت اطلاعات.'}};
+ function render(section,rows){
+  if(!rows.length)return '<p>موردی برای نمایش وجود ندارد.</p>';
+  if(section==='blocked')return table(['IP','تعداد خطا','آخرین تلاش','زمان مسدودی','شناسه مرورگر','عملیات'],rows.map(r=>[r.ip_address,r.fail_count,r.last_attempt_at,r.blocked_at,(r.browser_ids||[]).join('،'),`<button onclick="academyUnblockMembershipV1('${encodeURIComponent(r.ip_address)}')">رفع مسدودی</button>`]));
+  if(section==='events')return table(['زمان','رویداد','جزئیات','IP'],rows.map(r=>[r.created_at,r.event_type,JSON.stringify(r.details||{}),r.ip_address||'—']));
+  return table(['نام','پایه','استان/شهر','تماس ولی','کد ملی','تاریخ','عملیات/دلیل'],rows.map(r=>[
+   r.first_name+' '+r.last_name,r.grade,r.province+' / '+r.city,r.guardian_phone||'—',r.national_id_full?{html:'<span dir=\"ltr\" style=\"font-weight:700;letter-spacing:1px\">'+esc(r.national_id_full)+'</span>'}:(r.national_id_masked||'کد ملی درخواست‌های قدیمی قابل بازیابی نیست'),new Date(r.created_at).toLocaleString('fa-IR'),
+   section==='requests'?{html:`<button onclick="academyApproveMembershipV1('${r.id}')">تأیید</button><button onclick="academyRejectMembershipV1('${r.id}')">رد</button>`}:
+   section==='rejected'?{html:esc(r.rejection_reason||'—')+'<br><small>اجازه درخواست مجدد: '+(r.allow_reapply?'فعال':'غیرفعال')+'</small><br>'+`<button onclick="academySetReapplyMembershipV1('${r.id}',${!r.allow_reapply})">${r.allow_reapply?'لغو اجازه درخواست مجدد':'اجازه درخواست مجدد'}</button>`}:r.status_label||'—'
+  ]));
+ }
+ function table(head,rows){return '<div class="am-table-wrap"><table class="am-table"><thead><tr>'+head.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+(x&&typeof x==='object'&&x.html?x.html:esc(x))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+ window.academyApproveMembershipV1=async id=>{if(prompt('برای تأیید، عبارت تأیید را وارد کنید:')!=='تأیید')return;try{const data=await callFunction('membership-api',{action:'approve_request',request_id:id});if(!data?.ok)throw Error(data?.error||'تأیید نشد.');alert('درخواست تأیید شد و دانش‌آموز با پایه ثبت‌شده در فهرست دانش‌آموزان قرار گرفت. برای ورود، از سازوکار فعلی آکادمی استفاده کنید.');await academyMembershipAdminTabV1('requests',document.querySelector('.am-tabs button'));if(typeof loadStudentManagementV52==='function')await loadStudentManagementV52();if(typeof loadTeacherStudentManagerV62==='function')await loadTeacherStudentManagerV62();}catch(e){alert(e.message||'خطا')}};
+ window.academyRejectMembershipV1=async id=>{const reason=prompt('دلیل رد درخواست (اجباری):');if(!reason?.trim())return;const allow=confirm('اجازه ثبت درخواست مجدد داده شود؟');try{const data=await callFunction('membership-api',{action:'reject_request',request_id:id,rejection_reason:reason});if(!data?.ok)throw Error(data?.error||'ثبت نشد.');if(allow){const permission=await callFunction('membership-api',{action:'set_reapply_permission',request_id:id,allow_reapply:true});if(!permission?.ok)throw Error(permission?.error||'درخواست رد شد، اما ثبت مجدد مجاز نشد. لطفاً مجوز را از زبانه درخواست‌های ردشده تنظیم کنید.')}academyMembershipAdminTabV1('requests',document.querySelector('.am-tabs button'))}catch(e){alert(e.message||'خطا')}};
+ window.academySetReapplyMembershipV1=async(id,allow)=>{try{const d=await callFunction('membership-api',{action:'set_reapply_permission',request_id:id,allow_reapply:allow});if(!d?.ok)throw Error(d?.error||'تغییر دسترسی انجام نشد.');academyMembershipAdminTabV1('rejected',document.querySelectorAll('.am-tabs button')[2])}catch(e){alert(e.message||'خطا')}};
+ window.academyUnblockMembershipV1=async ip=>{if(!confirm('مسدودی این IP رفع شود؟'))return;try{const data=await callFunction('membership-api',{action:'unblock_ip',ip_address:decodeURIComponent(ip)});if(!data?.ok)throw Error(data?.error||'انجام نشد.');academyMembershipAdminTabV1('blocked',document.querySelectorAll('.am-tabs button')[3])}catch(e){alert(e.message||'خطا')}};
+ window.academyLoadMembershipAdminV1=()=>{if(teacher?.is_admin)academyMembershipAdminTabV1('requests',document.querySelector('.am-tabs button'))};
+})();
+</script>
+
 </body>\n<!-- ACADEMY WHEEL REPORT DEDICATED ADMIN MENU V6 -->
 <script id="academy-wheel-report-dedicated-menu-v6">
 (function(){
@@ -6499,6 +6687,13 @@ body.academy-student-instant-view #academyStudentAdventureV124{
   try{
    const {data,error}=await db.rpc('start_exam_attempt',{p_exam_id:exam.id});if(error)throw error;window.academyAssertAttemptStarted?.(data);
    const rows=Array.isArray(data?.questions)?data.questions:[];
+   // اگر آزمون جفت‌کلمات باشد، همان تلاش تازه‌ساخته‌شده را به نمایشگر عادی بده؛
+   // start_exam_attempt نباید بار دوم فراخوانی شود.
+   if(hasMatchingPairs(rows)){
+    activeExam=exam;activeAttempt=data;activeQuestions=rows;activeAnswers={};
+    showExamPanel(exam.title,`آزمون ${exam.subject} · درس ${fa(exam.lesson_number)} · تلاش شماره ${fa(data.attempt_number)}`);
+    renderExamQuestions();examDeadline=null;startExamClock();return;
+   }
    if(rows.length&&launch(exam,rows,data,false))return;
    toast('ساختار پاسخ‌های این آزمون برای جورچین کامل نیست؛ نمایش چهارگزینه‌ای غیرفعال شد. لطفاً پاسخ صحیح واژه‌ها را در پنل معلم بررسی کنید.');return;
   }catch(e){if(e?.code==='RETAKE_NOT_AUTHORIZED'){try{await window.academyShowFinishedAttemptResult(exam,e);return;}catch(resultError){toast('آزمون قبلی نهایی شد، اما دریافت کارنامه ناموفق بود: '+(resultError.message||''));return;}}const m=String(e?.message||'');if(/retake not authorized|already attempted|one attempt/i.test(m))window.academyShowTopAttemptNotice?.('ورود به آزمون انجام نشد.');toast('شروع آزمون ناموفق بود: '+(m||'خطای نامشخص'));}
@@ -6507,7 +6702,18 @@ body.academy-student-instant-view #academyStudentAdventureV124{
  window.beginAdminExamPreview=async function(exam){
   if(!isTarget(exam))return basePreview.apply(this,arguments);
   if(!teacher||!teacherCanAccessExam(exam)){toast('به این آزمون دسترسی ندارید.');return;}
-  try{const result=await callFunction('academy-admin',{action:'list_questions',exam_id:exam.id});if(!result?.ok)throw Error(result?.error||'دریافت سؤال‌ها ناموفق بود.');const rows=(result.questions||[]).sort((a,b)=>Number(a.position)-Number(b.position));if(rows.length&&launch(exam,rows,null,true))return;toast('پیش‌نمایش جورچین انجام نشد؛ پاسخ صحیح همهٔ واژه‌ها باید در دادهٔ سؤال ثبت شده باشد.');return;}catch(e){toast('پیش‌نمایش جورچین ناموفق بود: '+(e.message||'خطای نامشخص'));}
+  try{
+   const result=await callFunction('academy-admin',{action:'list_questions',exam_id:exam.id});if(!result?.ok)throw Error(result?.error||'دریافت سؤال‌ها ناموفق بود.');
+   const rows=(result.questions||[]).sort((a,b)=>Number(a.position)-Number(b.position));
+   if(hasMatchingPairs(rows)){
+    activeExam=exam;activeAttempt={staffPractice:true,started_at:new Date().toISOString(),duration_seconds:Math.max(0,Number(exam.duration_seconds)||0)};
+    activeQuestions=rows;activeAnswers={};answerSaveQueue=Promise.resolve();
+    showExamPanel(exam.title,'حالت تمرین مدیر/معلم · بدون محدودیت دفعات · بدون ثبت در کارنامه دانش‌آموزان');
+    renderExamQuestions();examDeadline=null;startExamClock();return;
+   }
+   if(rows.length&&launch(exam,rows,null,true))return;
+   toast('پیش‌نمایش جورچین انجام نشد؛ پاسخ صحیح همهٔ واژه‌ها باید در دادهٔ سؤال ثبت شده باشد.');return;
+  }catch(e){toast('پیش‌نمایش جورچین ناموفق بود: '+(e.message||'خطای نامشخص'));}
  };
  const bridge=window.academyQuizBridge;
  if(bridge){
