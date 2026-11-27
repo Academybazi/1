@@ -1134,10 +1134,21 @@ function academyStaffPracticeResult(auto){
 function renderExamQuestions(){const body=document.getElementById('examBody');const panel=document.getElementById('examPanel');panel?.classList.toggle('academy-pairs-integrated',activeQuestions.some(q=>q.question_type==='matching_pairs'));body.innerHTML='';activeQuestions.forEach((q,i)=>{const card=document.createElement('article');card.className='exam-question';const title=document.createElement('h3');title.textContent=`سؤال ${fa(i+1)} · ${safeText(q.prompt)}`;card.appendChild(title);if(q.media&&q.media.image_data_uri){const img=document.createElement('img');img.className='academy-rainbow-image';img.src=q.media.image_data_uri;img.alt=q.media.image_alt||'تصویر آموزشی سؤال';img.loading='eager';card.appendChild(img);if(q.media.caption){const cap=document.createElement('p');cap.className='muted';cap.style.textAlign='center';cap.textContent=q.media.caption;card.appendChild(cap);}}else if(q.media&&Object.keys(q.media).length){const m=document.createElement('p');m.className='muted';m.textContent='رسانه یا تصویر همراه سؤال در داده آزمون موجود است.';card.appendChild(m)}const ctl=document.createElement('div');ctl.innerHTML=renderAnswerControl(q,i);card.appendChild(ctl);const feedback=document.createElement('div');feedback.className='question-feedback';feedback.id='feedback_'+q.id;feedback.setAttribute('aria-live','polite');card.appendChild(feedback);body.appendChild(card)});document.getElementById('examActions').innerHTML=activeAttempt?.staffPractice?'<button class="btn pink" onclick="finishExam(false)">پایان آزمون</button>':'<button class="btn pink" onclick="finishExam(false)">پایان و ثبت پاسخ‌ها</button>'}
 /* تایمر مرکزی آکادمی: همهٔ مسیرهای آزمون از startExamClock استفاده می‌کنند. */
 function startExamClock(){
- // فقط موتور زمان‌بندی و پایان خودکار آزمون فعال می‌ماند؛ نمایشگر بالایی حذف شده است.
+ // یک زمان‌سنج مرکزی برای تمام مسیرهای آزمون؛ شروع مجدد، بازه قبلی را پاک می‌کند.
  if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null;}
  if(examTimer){clearInterval(examTimer);examTimer=null;}
  const meta=document.getElementById('examMeta');
+ // نمایشگر در همان نوار بالای آزمون ساخته می‌شود و با هر بار اجرا تکراری نخواهد شد.
+ let display=document.getElementById('academyExamClockDisplay');
+ if(meta&&!display){
+  display=document.createElement('span');
+  display.id='academyExamClockDisplay';
+  display.className='exam-timer';
+  display.setAttribute('role','timer');
+  display.setAttribute('aria-live','off');
+  display.style.cssText='display:inline-block;margin-inline-start:12px;font-weight:900;font-variant-numeric:tabular-nums;direction:ltr';
+  meta.appendChild(display);
+ }
  const started=Date.parse(activeAttempt?.started_at)||Date.now();
  const configuredLimit=Math.max(0,Number(activeAttempt?.duration_seconds)||Number(activeExam?.duration_seconds)||0);
  if(!(Number(examDeadline)>0)&&configuredLimit>0)examDeadline=started+configuredLimit*1000;
@@ -1146,18 +1157,23 @@ function startExamClock(){
  let timeoutStarted=false;
  const tick=()=>{
   const now=Date.now();
-  // زمان فقط در سربرگ داخلی جورچین به‌روزرسانی می‌شود؛ نمایشگر بالایی وجود ندارد.
   const puzzleFrame=window.__academyPuzzleFrame||document.querySelector('#examBody iframe');
   let puzzleClock=null;
   try{puzzleClock=puzzleFrame?.contentDocument?.getElementById('academyPuzzleClockValue')||null;}catch(_){}
   const clockLabel=puzzleClock?.parentElement?.querySelector('small');
   const elapsed=Math.max(0,Math.floor((now-started)/1000));
   const shownSeconds=deadline?Math.max(0,Math.ceil((deadline-now)/1000)):elapsed;
+  const mm=fa(String(Math.floor(shownSeconds/60)).padStart(2,'0'));
+  const ss=fa(String(shownSeconds%60)).padStart(2,'0');
   if(puzzleClock){
-   const mm=fa(String(Math.floor(shownSeconds/60)).padStart(2,'0'));
-   const ss=fa(String(shownSeconds%60)).padStart(2,'0');
    puzzleClock.textContent=`${mm}:${ss}`;
    if(clockLabel)clockLabel.textContent=deadline?'زمان باقی‌مانده':'زمان سپری‌شده';
+  }
+  // آزمون‌های عادی، از جمله چهارگزینه‌ای، زمان را در نوار بالایی نشان می‌دهند.
+  // جورچین نمایشگر تعبیه‌شده خودش را دارد؛ در آن مسیر ساعت والد پنهان می‌ماند.
+  if(display){
+   display.hidden=!!puzzleClock;
+   display.textContent=puzzleClock?'':`${deadline?'زمان باقی‌مانده':'زمان سپری‌شده'}: ${mm}:${ss}`;
   }
   if(deadline){
    const remaining=Math.max(0,Math.ceil((deadline-now)/1000));
@@ -1191,7 +1207,7 @@ window.academyStopExamClock=function(label='آزمون پایان یافت'){
  if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null;}
  if(examTimer){clearInterval(examTimer);examTimer=null;}
  window.__academyExamClockTick=null;
- // نمایشگر بالایی حذف شده؛ موتور زمان‌سنج فقط نمایشگر داخلی جورچین را به‌روزرسانی می‌کند.
+ // بازهٔ مرکزی متوقف شد؛ نمایشگر تا پاک‌سازی یا نمایش نتیجه باقی می‌ماند.
 };
 
 async function finishExam(auto){if(!activeAttempt)return;try{if(window.__academyExamClockInterval){clearInterval(window.__academyExamClockInterval);window.__academyExamClockInterval=null}if(examTimer){clearInterval(examTimer);examTimer=null}examDeadline=null;if(activeAttempt.staffPractice){academyStaffPracticeResult(auto);return;}const wait=document.getElementById('examMeta');if(wait)wait.textContent='لطفا صبر کنید در حال آماده سازی کارنامه';const action=document.querySelector('#examActions button');if(action)action.disabled=true;await answerSaveQueue;const {data,error}=await db.rpc('finish_exam_attempt',{p_attempt_id:activeAttempt.attempt_id});if(error)throw error;const result=await db.rpc('get_student_exam_result',{p_attempt_id:activeAttempt.attempt_id});if(result.error)throw result.error;renderStudentResult(result.data,auto)}catch(e){toast('ثبت پایان آزمون انجام نشد: '+e.message);const action=document.querySelector('#examActions button');if(action)action.disabled=false}}
