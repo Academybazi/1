@@ -6071,6 +6071,8 @@ body.academy-student-instant-view #academyStudentAdventureV124{
  function hasMatchingPairs(rows){
    return Array.isArray(rows)&&rows.some(q=>String(q?.question_type||'').trim().toLowerCase()==='matching_pairs');
  }
+ // این تشخیص در چند ماژول مستقلِ اجرای آزمون نیز استفاده می‌شود.
+ window.hasMatchingPairs=hasMatchingPairs;
  function isWordPuzzleExam(ex,rows){
    // نوع واقعی سؤال بر تشخیص مبتنی بر پایه/شماره درس اولویت دارد.
    if(hasMatchingPairs(rows))return false;
